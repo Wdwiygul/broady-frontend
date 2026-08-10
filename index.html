@@ -74,12 +74,19 @@
 
     /* Route input card — TomTom style */
     .route-card {
-      background: rgba(255,255,255,.12); backdrop-filter: blur(16px);
-      border: 2.5px solid rgba(255,255,255,.3);
-      border-radius: 24px; margin: 12px 16px;
-      padding: 16px;
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      z-index: 25;
+      background: rgba(10,15,45,.94); backdrop-filter: blur(20px);
+      border: none;
+      border-top: 1px solid rgba(255,255,255,.15);
+      border-radius: 24px 24px 0 0;
+      margin: 0;
+      padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
+      max-height: 75vh;
+      overflow-y: auto;
     }
-    #routeCardBody { transition: all .25s ease; display: none; }
+    #routeCardBody { transition: all .25s ease; display: block; }
     #routeCardBody.open { display: block; }
     .route-card-label {
       font-size: .65rem; font-weight: 800; letter-spacing: .12em;
@@ -438,9 +445,9 @@
 
     /* ETA + progress bar — TomTom bottom strip */
     .map-bottom {
-      position: absolute; bottom: 0; left: 0; right: 0; z-index: 20;
+      position: absolute; bottom: 0; left: 0; right: 0; z-index: 26;
       background: #1a3a8f;
-      padding: 10px 16px 12px;
+      padding: 10px 16px calc(12px + env(safe-area-inset-bottom));
       box-shadow: 0 -4px 0 #0f2060, 0 -6px 20px rgba(0,0,0,.4);
     }
     .map-progress { height: 4px; background: rgba(255,255,255,.1); border-radius: 2px; margin-bottom: 10px; }
@@ -2390,6 +2397,7 @@
 
     <!-- ══ NEW ROUTE PLANNER ══ -->
     <div class="route-card" id="routeCard">
+      <div style="text-align:center;margin:-4px 0 8px;"><div style="width:36px;height:4px;background:rgba(255,255,255,.25);border-radius:2px;display:inline-block;"></div></div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;cursor:pointer;" onclick="toggleRouteCard()">
         <div style="font-size:.75rem;font-weight:900;color:rgba(255,255,255,.55);letter-spacing:.08em;text-transform:uppercase;">Plan Your Route</div>
         <svg id="routeCardChevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="2.5" style="transition:transform .25s;transform:rotate(0deg);"><path d="M6 9l6 6 6-6"/></svg>
@@ -2725,7 +2733,7 @@
     <div class="map-horizon"></div>
 
     <!-- ===== SIMPLIFIED MAP BOTTOM ===== -->
-    <div class="map-bottom">
+    <div class="map-bottom" id="mapBottomBar" style="display:none;">
       <div class="map-progress"><div class="map-progress-bar" id="progressBar"></div></div>
       <div class="map-stats">
         <div class="map-stat" id="mapSpeedStat"><div class="mv" id="mapSpeed">57</div><div class="ml">mph</div></div>
@@ -4515,6 +4523,19 @@ function goTo(id) {
   bn.style.display = NO_NAV.includes(id) ? 'none' : '';
   if (id === 'mapscreen') {
     initMap();
+    // Show route planner card if no active route; hide it when navigating
+    setTimeout(function() {
+      var rc = document.getElementById('routeCard');
+      var mb = document.getElementById('mapbottom') || document.querySelector('.map-bottom');
+      var isNavigating = window.navActive || (window.routeSteps && window.routeSteps.length > 0);
+      if (rc) rc.style.display = isNavigating ? 'none' : '';
+      if (mb) mb.style.display = isNavigating ? '' : 'none';
+      // Auto-focus destination input
+      if (!isNavigating) {
+        var di = document.getElementById('destInput');
+        if (di) setTimeout(function(){ di.focus(); }, 400);
+      }
+    }, 350);
     // Apply HUD overlay preferences after a short delay (DOM must be visible)
     setTimeout(() => {
       ['overlayWxHud','overlaySpeedChip','overlayTurnCard','overlayReportBtn','overlayCompass','overlayConvoy'].forEach(k => applyOverlaySetting(k));
@@ -5756,7 +5777,14 @@ var VEHICLE_DB = {
             'Precept (Standard)': { length_ft:38.83, height_ft:12.83, width_ft:8.417, weight_lbs:24000, mpg:0, tank_gal:0, fuel_type:'none' },
           }},
           'Seneca': { trims: {
-            'Seneca (Standard)': { length_ft:38.75, height_ft:13.08, width_ft:8.417, weight_lbs:29000, mpg:0, tank_gal:0, fuel_type:'none' },
+            '37HJ': { length_ft:39.33, height_ft:13.33, width_ft:8.42, weight_lbs:31000, mpg:8, tank_gal:100, fuel_type:'diesel' },
+            '37K':  { length_ft:39.33, height_ft:13.33, width_ft:8.42, weight_lbs:31000, mpg:8, tank_gal:100, fuel_type:'diesel' },
+            '37L':  { length_ft:39.33, height_ft:13.33, width_ft:8.42, weight_lbs:31000, mpg:8, tank_gal:100, fuel_type:'diesel' },
+            '37M':  { length_ft:39.33, height_ft:13.33, width_ft:8.42, weight_lbs:31000, mpg:8, tank_gal:100, fuel_type:'diesel' },
+            '37RB': { length_ft:39.33, height_ft:13.33, width_ft:8.42, weight_lbs:31000, mpg:8, tank_gal:100, fuel_type:'diesel' },
+            '37TS': { length_ft:39.33, height_ft:13.33, width_ft:8.42, weight_lbs:31000, mpg:8, tank_gal:100, fuel_type:'diesel' },
+            '40SK': { length_ft:41.67, height_ft:13.33, width_ft:8.42, weight_lbs:33000, mpg:7, tank_gal:100, fuel_type:'diesel' },
+            '40KS': { length_ft:41.67, height_ft:13.33, width_ft:8.42, weight_lbs:33000, mpg:7, tank_gal:100, fuel_type:'diesel' },
           }},
           'Embark': { trims: {
             'Embark (Standard)': { length_ft:28, height_ft:10.5, width_ft:8.0, weight_lbs:7500, mpg:0, tank_gal:0, fuel_type:'none' },
@@ -23058,6 +23086,11 @@ function renderMustSeePins() {
 }
 
 async function buildRoute() {
+  // Show nav UI, hide route planner card
+  var rc = document.getElementById('routeCard');
+  var mb = document.querySelector('.map-bottom');
+  if (rc) rc.style.display = 'none';
+  if (mb) mb.style.display = '';
   if (!map) return;
   map.eachLayer(l=>{ if(l._br) map.removeLayer(l); });
   renderMustSeePins();
@@ -25585,7 +25618,7 @@ function broReply(userText) {
     const truckerPool = isFemaleVoice ? babeTruckerJokes : broTruckerJokes;
     return truckerPool[Math.floor(Math.random() * truckerPool.length)];
   }
-  if (/joke|make me laugh|funny|tell me something|tell a joke/.test(u)) {
+  if (/joke|make me laugh|funny|tell me something|tell.*joke/.test(u)) {
     const broAllJokes = [
       "Why don't truckers ever get lost? Because they always keep their eyes on the road... and a GPS. You're welcome.",
       "What do you call a sleeping trucker? A rest stop. Ha! Get it? I'll be here all mile.",
@@ -25652,7 +25685,7 @@ function broReply(userText) {
     goTo('gasscreen');
     return "Opening Gas Finder. Cheapest diesel is up ahead — check the list!";
   }
-  if (/report|hazard|accident|obstacle|roadkill|debris|\bwreck\b|rolled over|car fire|\bcrash\b|\bambulance\b|dead stop|backed.*up|traffic.*jam|lanes.*merged|lane.*merged|road.*closed|\bpothole\b|heavy equipment|white.?out|\bsleet\b|\blightning\b|wind.*blowing|blowing.*wind|dust storm|zero visibility|asphalt.*roll|\bflooding\b|\bblackout\b|bridge.*work|bridge deck|orange barrel|new asphalt|rubberneck|jackknife|jackknifed|slowdown|\bslowdown\b/.test(u)) { goTo('reportscreen'); return "Opening reports — tap what you see ahead to warn other drivers."; }
+  if (/report|hazard|accident|obstacle|roadkill|debris|\bwreck\b|rolled over|car fire|\bcrash\b|\bambulance\b|dead stop|backed.*up|traffic.*jam|traffic jam ahead|traffic.*ahead|lanes.*merged|road.?work|construction ahead|lane.*merged|road.*closed|\bpothole\b|heavy equipment|white.?out|\bsleet\b|\blightning\b|wind.*blowing|blowing.*wind|dust storm|zero visibility|asphalt.*roll|\bflooding\b|\bblackout\b|bridge.*work|bridge deck|orange barrel|new asphalt|rubberneck|jackknife|jackknifed|slowdown|\bslowdown\b/.test(u)) { goTo('reportscreen'); return "Opening reports — tap what you see ahead to warn other drivers."; }
   if (/\bmusic\b|\bspotify\b|\bapple music\b|\bsong\b/.test(u)) { goTo('musicscreen'); return "Opening Music. Hit play and I'll keep you company."; }
   if (/\btire\b|pressure|tpms|need air|flat tire|\bflat\b/.test(u))             { goTo('tiresscreen'); return "Opening Tire Pressure. Don't forget to check before a long haul."; }
   if (/truck stop|pilot|love.s|petro|flying j|find.*love|find.*pilot|find.*petro|find.*flying j|find.*truck stop|nearest love|nearest pilot|nearest petro/.test(u)) { goTo('truckscreen'); return "Opening Trucker Stops. Pilot and Love's usually have the best facilities."; }
@@ -25683,7 +25716,7 @@ function broReply(userText) {
     if (ctx.stepNow) return `Next up: ${ctx.stepNow}`;
     return "No active navigation. Enter a destination and tap Go!";
   }
-  if (/how far|distance|miles.*left/.test(u)) {
+  if (/how far|distance|miles.*left|miles.*remain|remaining.*miles/.test(u)) {
     if (ctx.distLeft) return `About ${ctx.distLeft} remaining.`;
     return "Start a route first and I'll track your distance.";
   }
@@ -25802,6 +25835,9 @@ function broReply(userText) {
   if (ctx.eta) hints.push(`ETA ${ctx.eta}`);
   if (ctx.distLeft) hints.push(`${ctx.distLeft} left`);
   const routeHint = hints.length ? ` (${hints.join(', ')})` : '';
+    if (/zoom in|zoom.*in|get.*closer/.test(u)) { if(window.map) window.map.zoomIn(); return "Zooming in."; }
+    if (/zoom out|zoom.*out|pull.*back|wider view/.test(u)) { if(window.map) window.map.zoomOut(); return "Zooming out."; }
+    if (/center.*map|re.?center|find.*me|where am i|show.*my.*location|show.*map/.test(u)) { centerMap(); return "Centering map on your location."; }
     if (/what can you do|how do i use|help me|what.*commands|what.*say/.test(u)) {
     return "I can navigate, find fuel, food, campgrounds, truck stops, check weather, monitor tire pressure, pull your ETA, and take road reports. Just say what you need and I got you!";
   }
@@ -26974,7 +27010,12 @@ function startTripTimer() {
 }
 
 function endTripAndLog(distMi, fuelCost) {
-  if (!tripStartTime) return;
+  if (!
+  // Restore route planner card
+  var rc = document.getElementById('routeCard');
+  var mb = document.querySelector('.map-bottom');
+  if (rc) rc.style.display = '';
+  if (mb) mb.style.display = 'none';tripStartTime) return;
   const driveMs = Date.now() - tripStartTime;
   tripStartTime = null;
   const h = Math.floor(driveMs / 3600000);
@@ -32943,6 +32984,8 @@ function clearConvoyMapPins() {
 const _prevBroReply = broReply;
 broReply = function(userText) {
   const u = userText.toLowerCase();
+  if (/thank|thanks|appreciate|good job|nice one|you rock|great job/.test(u)) { return "Anytime, driver. That is what I am here for. Keep the shiny side up!"; }
+  if (/what.*up|hey bro|how.*you|you good|you okay/.test(u)) { return "All good over here. Eyes on the road, hands on the wheel. What do you need?"; }
   if (/convoy.*status|who.*convoy|convoy.*members/.test(u)) {
     if (!convoy.active) return 'No active convoy. Go to Convoy Mode on the home screen to start one.';
     const count = convoy.members.length;
