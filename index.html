@@ -17,7 +17,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, html { overflow-x: hidden; max-width: 100vw; }
+    html, html { overflow-x: hidden; max-width: 100vw; height: 100%; }
     body { height: 100%; max-width: 100vw; overflow-x: hidden; font-family: 'Nunito', sans-serif; overflow-y: hidden; background: #0d1b4b; color: white; -webkit-text-size-adjust: 100%; touch-action: pan-y; }
     button, input { font: inherit; color: inherit; border: none; background: none; cursor: pointer; }
     body.light-mode { background: #dbe7f0; color: #0f2027; }
@@ -27,7 +27,7 @@
 
     /* ─── Screens ─── */
     .screen { display: none; position: absolute; inset: 0; bottom: 0; flex-direction: column; overflow: hidden; }
-    .screen.active { display: flex; }
+    .screen.active { display: flex; height: 100%; }
     .screen-scroll {
       flex: 1; overflow-y: auto;
       -webkit-overflow-scrolling: touch;
@@ -340,27 +340,28 @@
     }
     .dim-slider-val { font-size: .8rem; font-weight: 700; color: #4ecdc4; min-width: 32px; text-align: right; }
 
-        #mapscreen { background: #0d1b4b; display: flex; flex-direction: column; }
+        #mapscreen { background: #0d1b4b; }
     #mapCanvas { flex: 1; min-height: 0; }
-    #mapCanvas { position: absolute; inset: 0; z-index: 1; }
+    #mapCanvas { position: absolute; inset: 0; z-index: 1; pointer-events: none; width: 100%; height: 100%; }
 
     /* Top turn instruction — TomTom signature element */
     .turn-bar {
       position: absolute; top: 0; left: 0; right: 0; z-index: 20;
-      background: #1a3a8f;
-      padding: max(12px, env(safe-area-inset-top)) 16px 14px;
-      display: flex; align-items: center; gap: 14px;
-      box-shadow: 0 4px 0 #0f2060, 0 6px 20px rgba(0,0,0,.5);
+      background: #111827;
+      padding: max(14px, env(safe-area-inset-top)) 16px 18px;
+      display: flex; align-items: center; gap: 16px;
+      box-shadow: 0 4px 0 #000, 0 6px 24px rgba(0,0,0,.7);
+      min-height: 100px;
     }
     .turn-arrow {
-      width: 64px; height: 64px; border-radius: 18px;
+      width: 80px; height: 80px; border-radius: 20px;
       background: #ff6b35; display: grid; place-items: center;
       color: #fff; flex-shrink: 0;
       box-shadow: 0 4px 0 #c94b14;
     }
     .turn-info { flex: 1; }
-    .turn-dist { font-size: 1.6rem; font-weight: 900; letter-spacing: -.03em; line-height: 1; }
-    .turn-street { font-size: .88rem; color: rgba(255,255,255,.65); margin-top: 4px; }
+    .turn-dist { font-size: 3rem; font-weight: 900; letter-spacing: -.04em; line-height: 1; color: #fff; }
+    .turn-street { font-size: 1.1rem; font-weight: 700; color: rgba(255,255,255,.92); margin-top: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .turn-back {
       width: 40px; height: 40px; border-radius: 12px;
       background: rgba(255,255,255,.1); display: grid; place-items: center;
@@ -370,24 +371,24 @@
     /* Speed limit badge on map */
     .speed-limit-badge {
       position: absolute; bottom: 170px; left: 14px; z-index: 19;
-      width: 62px; border-radius: 10px;
-      background: white; border: 4px solid #1a1a1a; color: #111;
+      width: 80px; border-radius: 14px;
+      background: white; border: 5px solid #1a1a1a; color: #111;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      font-weight: 900; line-height: 1; box-shadow: 0 4px 18px rgba(0,0,0,.45);
-      padding: 5px 4px 6px; cursor: default;
+      font-weight: 900; line-height: 1; box-shadow: 0 6px 28px rgba(0,0,0,.65);
+      padding: 8px 4px 9px; cursor: default;
       transition: border-color .3s, box-shadow .3s;
       user-select: none;
     }
     .speed-limit-badge .sl-top {
-      font-size: .42rem; font-weight: 900; letter-spacing: .08em;
-      text-transform: uppercase; color: #111; margin-bottom: 1px;
+      font-size: .58rem; font-weight: 900; letter-spacing: .08em;
+      text-transform: uppercase; color: #111; margin-bottom: 2px;
     }
     .speed-limit-badge .sl-num {
-      font-size: 1.65rem; font-weight: 900; line-height: 1; color: #111;
+      font-size: 2.2rem; font-weight: 900; line-height: 1; color: #111;
     }
     .speed-limit-badge .sl-lbl {
-      font-size: .36rem; letter-spacing: .06em; text-transform: uppercase;
-      color: #555; margin-top: 2px;
+      font-size: .5rem; letter-spacing: .06em; text-transform: uppercase;
+      color: #555; margin-top: 3px;
     }
     /* Fetching state */
     .speed-limit-badge.sl-loading { opacity: 0.55; }
@@ -411,7 +412,7 @@
       to   { transform: scale(1.07); box-shadow: 0 6px 30px rgba(211,47,47,.85); }
     }
     /* Night-nav dims the badge slightly */
-    body.night-nav .speed-limit-badge { opacity: 0.6; }
+    body.night-nav .speed-limit-badge { opacity: 1; }
     /* Speed-over banner on map */
     #speedOverBanner {
       position: absolute; left: 12px; right: 12px; z-index: 25;
@@ -460,16 +461,16 @@
     /* ETA + progress bar — TomTom bottom strip */
     .map-bottom {
       position: absolute; bottom: 0; left: 0; right: 0; z-index: 26;
-      background: #1a3a8f;
-      padding: 10px 16px calc(12px + env(safe-area-inset-bottom));
-      box-shadow: 0 -4px 0 #0f2060, 0 -6px 20px rgba(0,0,0,.4);
+      background: #111827;
+      padding: 14px 16px calc(16px + env(safe-area-inset-bottom));
+      box-shadow: 0 -4px 0 #000, 0 -6px 24px rgba(0,0,0,.7);
     }
     .map-progress { height: 4px; background: rgba(255,255,255,.1); border-radius: 2px; margin-bottom: 10px; }
     .map-progress-bar { height: 100%; background: #ff6b35; border-radius: 2px; width: 18%; transition: width .5s; }
     .map-stats { display: flex; align-items: center; gap: 0; }
     .map-stat { flex: 1; text-align: center; }
-    .map-stat .mv { font-size: 1rem; font-weight: 800; }
-    .map-stat .ml { font-size: .6rem; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: rgba(255,255,255,.45); }
+    .map-stat .mv { font-size: 1.6rem; font-weight: 900; letter-spacing: -.02em; }
+    .map-stat .ml { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: rgba(255,255,255,.5); margin-top: 2px; }
     .map-stat-div { width: 1px; height: 30px; background: rgba(255,255,255,.1); }
     .map-stat.speeding-flag .mv { color: #f87171; }
     /* Trip cost drawer */
@@ -1781,6 +1782,74 @@
     .svp-select { font-size: 16px !important; }
     .rp-addr-input { font-size: 16px !important; }
 
+
+    /* ═══ Waze-style speed badge (bottom-left circle) ═══ */
+    #speedBadge {
+      position: absolute; bottom: 170px; left: 104px; z-index: 19;
+      width: 72px; height: 72px; border-radius: 50%;
+      background: #111827; border: 3px solid rgba(255,255,255,.15);
+      display: none; flex-direction: column; align-items: center; justify-content: center;
+      box-shadow: 0 6px 24px rgba(0,0,0,.65);
+      pointer-events: none;
+    }
+    #speedBadgeVal {
+      font-size: 1.65rem; font-weight: 900; color: #fff; line-height: 1; letter-spacing: -.02em;
+    }
+    #speedBadgeUnit {
+      font-size: .48rem; font-weight: 700; color: rgba(255,255,255,.5);
+      text-transform: uppercase; letter-spacing: .06em; margin-top: 2px;
+    }
+    #speedBadge.sb-over { background: #b91c1c; border-color: rgba(255,100,100,.4); }
+
+    /* ═══ Waze-style current road pill (bottom center) ═══ */
+    #currentRoadPill {
+      position: absolute; bottom: 185px; left: 50%; transform: translateX(-50%);
+      z-index: 19; display: none; align-items: center;
+      background: rgba(255,255,255,.97); border-radius: 50px;
+      padding: 8px 20px; box-shadow: 0 4px 20px rgba(0,0,0,.35);
+      white-space: nowrap; pointer-events: none;
+      font-size: .95rem; font-weight: 700; color: #111;
+      max-width: 60vw; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    /* ═══ Waze-style simplified bottom bar ═══ */
+    .map-bottom-eta {
+      flex: 1; display: flex; flex-direction: column; align-items: flex-start; justify-content: center;
+      padding-left: 4px;
+    }
+    .map-eta-time {
+      font-size: 2.4rem; font-weight: 900; color: #fff; line-height: 1; letter-spacing: -.04em;
+    }
+    .map-eta-sub {
+      font-size: .75rem; font-weight: 600; color: rgba(255,255,255,.6);
+      text-transform: uppercase; letter-spacing: .04em; margin-top: 3px;
+    }
+    .map-bottom-right {
+      display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+    }
+    .map-fuel-tap {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      background: rgba(255,255,255,.08); border-radius: 14px;
+      padding: 8px 14px; cursor: pointer;
+    }
+    .map-fuel-tap .mv { font-size: 1.1rem; font-weight: 800; color: #a5c4d4; }
+    .map-fuel-tap .ml { font-size: .6rem; font-weight: 600; color: rgba(255,255,255,.45);
+      text-transform: uppercase; letter-spacing: .06em; margin-top: 2px; }
+    .map-stats { display: flex; align-items: center; gap: 12px; }
+
+    /* ═══ Highway shields in turn bar ═══ */
+    .route-shield {
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: .75rem; font-weight: 900; line-height: 1;
+      padding: 2px 7px; border-radius: 5px; margin-right: 3px;
+      vertical-align: middle;
+    }
+    .shield-interstate {
+      background: #1e40af; color: #fff; border: 2px solid #93c5fd;
+    }
+    .shield-us {
+      background: #fff; color: #111; border: 2px solid #555;
+    }
     </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
@@ -2334,6 +2403,22 @@
       <img src="mascot.png" alt="Broady mascot" />
     </div>
 
+    <!-- WHERE TO? search bar — Waze-style, always visible on home -->
+    <div id="homeSearchBar" onclick="goTo('mapscreen');setTimeout(function(){var i=document.getElementById('mapDestInput');if(i){i.focus();}},200);" style="
+      margin:0 14px 14px;
+      background:rgba(255,255,255,.1);
+      border:1.5px solid rgba(255,255,255,.18);
+      border-radius:50px;
+      padding:13px 20px;
+      display:flex; align-items:center; gap:12px;
+      cursor:pointer;
+      box-shadow:0 4px 18px rgba(0,0,0,.25);
+    ">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <span style="color:rgba(255,255,255,.55);font-size:1rem;font-weight:600;">Where to?</span>
+      <svg style="margin-left:auto;" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="2"><path d="M12 2a3 3 0 0 1 3 3v7a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3M8 22h8"/></svg>
+    </div>
+
     <!-- Rig card + GPS pill -->
     <div class="rig-row">
       <div class="rig-card needs-setup" id="rigCard" onclick="onRigCardTap()">
@@ -2531,6 +2616,7 @@
         <div id="catMenuTitle" style="font-size:1rem;font-weight:900;margin-bottom:14px;text-align:center;"></div>
         <div id="catMenuItems" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"></div>
       </div>
+  </div><!-- /catMenuSheet -->
   </div><!-- /home -->
 
   <!-- ══ MAP ══ -->
@@ -2538,6 +2624,35 @@
     <div id="convoyPinsLayer" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:10;"></div>
     <div id="mapCanvas"></div>
 
+
+    <!-- Map search bar overlay -->
+    <div id="mapSearchBar" style="
+      position:absolute; top:14px; left:12px; right:12px; z-index:50;
+      display:flex; align-items:center; gap:8px;
+      background:rgba(10,18,40,.92); backdrop-filter:blur(10px);
+      border:1px solid rgba(255,255,255,.15); border-radius:14px;
+      padding:10px 14px; box-shadow:0 4px 24px rgba(0,0,0,.5);
+    ">
+      <span style="font-size:1.1rem;">🔍</span>
+      <input id="mapDestInput" type="text" placeholder="Where to?"
+        autocomplete="off"
+        style="flex:1; background:transparent; border:none; outline:none;
+               color:#fff; font-size:.95rem; font-weight:600;
+               font-family:inherit;"
+        oninput="mapHandleDestInput(this.value)"
+        onfocus="mapSearchFocus()"
+      />
+      <button id="mapSearchClearBtn" onclick="mapClearSearch()"
+        style="display:none; background:none; border:none; color:rgba(255,255,255,.5);
+               font-size:1.1rem; cursor:pointer; padding:0 4px;">✕</button>
+    </div>
+    <!-- Map search suggestions dropdown -->
+    <div id="mapSuggestions" style="
+      position:absolute; top:68px; left:12px; right:12px; z-index:51;
+      background:rgba(10,18,40,.97); border:1px solid rgba(255,255,255,.12);
+      border-radius:12px; overflow:hidden; display:none;
+      box-shadow:0 8px 32px rgba(0,0,0,.6);
+    "></div>
     <!-- Night Nav Banner -->
     <div id="nightNavBanner">
       <span class="nnb-moon">🌙</span>
@@ -2554,7 +2669,7 @@
     <!-- TomTom top turn bar -->
     <div class="turn-bar" id="turnBar" onclick="toggleTurnList()" style="cursor:pointer">
       <div class="turn-arrow turn-arrow-svg" id="turnArrow">
-        <svg id="turnArrowSvg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 18V8a4 4 0 0 1 4-4h8"/><path d="M14 8l4-4 4 4"/></svg>
+        <svg id="turnArrowSvg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 18V8a4 4 0 0 1 4-4h8"/><path d="M14 8l4-4 4 4"/></svg>
       </div>
       <div class="turn-info">
         <div class="turn-dist" id="turnDist">—</div>
@@ -2575,6 +2690,17 @@
       <div class="sl-top">SPEED</div>
       <div class="sl-num" id="speedLimitVal">--</div>
       <div class="sl-lbl">LIMIT</div>
+    </div>
+
+    <!-- Current road pill (Waze-style, bottom center) -->
+    <div id="currentRoadPill" style="display:none;">
+      <span id="currentRoadName">--</span>
+    </div>
+
+    <!-- Current speed badge (Waze-style circle, bottom left) -->
+    <div id="speedBadge" style="display:none;">
+      <div id="speedBadgeVal">0</div>
+      <div id="speedBadgeUnit">mph</div>
     </div>
 
     <!-- Speed-over banner -->
@@ -2752,16 +2878,18 @@
     <div class="map-bottom" id="mapBottomBar" style="display:none;">
       <div class="map-progress"><div class="map-progress-bar" id="progressBar"></div></div>
       <div class="map-stats">
-        <div class="map-stat" id="mapSpeedStat"><div class="mv" id="mapSpeed">57</div><div class="ml">mph</div></div>
-        <div class="map-stat-div"></div>
-        <div class="map-stat"><div class="mv" id="mapEta">3:15p</div><div class="ml">arrival</div></div>
-        <div class="map-stat-div"></div>
-        <div class="map-stat"><div class="mv" id="mapDist">165mi</div><div class="ml">remaining</div></div>
-        <div class="map-stat-div"></div>
-        <div class="map-stat fuel-tap" onclick="toggleTripCostDrawer()" title="Tap for trip cost breakdown">
-          <div class="mv" id="mapTripCost">&mdash;</div>
-          <div class="ml">trip cost &#9662;</div>
+        <div class="map-bottom-eta">
+          <div class="map-eta-time" id="mapEta">3:15p</div>
+          <div class="map-eta-sub"><span id="mapDist">165mi</span> &bull; <span id="mapRemMin">--</span> min</div>
         </div>
+        <div class="map-bottom-right">
+          <div class="map-fuel-tap fuel-tap" onclick="toggleTripCostDrawer()" title="Tap for trip cost">
+            <div class="mv" id="mapTripCost">&mdash;</div>
+            <div class="ml">est. cost &#9662;</div>
+          </div>
+        </div>
+        <!-- hidden speed + mapSpeedStat kept for JS compatibility -->
+        <div id="mapSpeedStat" style="display:none;"><div id="mapSpeed">0</div></div>
       </div>
       <span id="tollTotal" style="display:none;">$0</span>
       <div id="tripCostDrawer">
@@ -4297,6 +4425,16 @@
         </div>
       </div>
       <div class="rp-routes" id="rpRouteList"></div>
+      <!-- Details toggle -->
+      <div id="rpDetailsToggle" onclick="toggleRpDetails()" style="
+        display:flex; align-items:center; justify-content:center; gap:6px;
+        padding:10px; cursor:pointer; color:rgba(255,255,255,.5);
+        font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
+        border-top:1px solid rgba(255,255,255,.07); margin-top:6px;
+      ">
+        <span id="rpDetailsArrow">&#9660;</span> Trip details &amp; more
+      </div>
+      <div id="rpDetailsPanel" style="display:none;">
       <!-- Trip Cost Estimator Card -->
       <div id="tripCostCard">
         <div class="tcc-title">⛽ Trip Cost Estimate</div>
@@ -4352,7 +4490,8 @@
       </div>
       <button onclick="shareTrip()" style="width:100%;margin-bottom:8px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:11px;font-size:.82rem;font-weight:700;color:rgba(255,255,255,.7);cursor:pointer;">📤 Share Route</button>
       </div><!-- /rp-panel-scroll -->
-      <button class="rp-go-btn" id="rpGoBtn" onclick="confirmRoute()">
+      </div><!-- /rpDetailsPanel -->
+      <button class="rp-go-btn" id="rpGoBtn" onclick="var _s=document.getElementById('routePickerSheet');if(_s){_s.classList.remove('open');_s.style.display='none';}confirmRoute();">
         🚦 Let's Go Bro!
       </button>
     </div>
@@ -4398,30 +4537,7 @@
 
   <!-- ══ TOASTS ══ -->
   <div id="toasts"></div>
-
-  <!-- ══ BOTTOM NAV — 5 TABS ══ -->
-  <div id="bottomnav">
-    <button class="nav-btn on" id="navHome" onclick="goTo('home')">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9.5L12 3l9 6.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1V9.5z"/></svg>
-      Home
-    </button>
-    <button class="nav-btn" id="navMap" onclick="goTo('mapscreen')">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4-7 4z"/><path d="M8 2v16M16 6v16"/></svg>
-      Map
-    </button>
-    <button class="nav-btn" id="navBro" onclick="goTo('voicescreen')">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
-      Bro
-    </button>
-    <button class="nav-btn" id="navGarage" onclick="goTo('garagescreen')">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21V10l9-6 9 6v11h-6v-6H9v6H3z"/></svg>
-      Garage
-    </button>
-    <button class="nav-btn" id="navSettings" onclick="goTo('settingsscreen')">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-      Settings
-    </button>
-  </div><!-- /bottomnav -->
+<!-- /bottomnav -->
 
   </div><!-- /app -->
 
@@ -4506,7 +4622,7 @@ let gpsLat = 37.5407, gpsLng = -77.4360; // default Richmond
 let currentSpeed = 0;
 let settings    = Object.assign({ darkMode:true, autoNight:true, voiceOn:true, speedThresh:10, units:'mph', ezpass:true, ncpass:false, voiceGender:'male', wakeWord:'', chattiness:2, humor:2, formality:1, musicDuck:true, hosEnabled:false, overlayTraffic:false, overlayMileMarkers:true, overlayWeighStations:true, overlayMustSee:true, overlayConvoy:true, overlayWxHud:true, overlaySpeedChip:true, overlayTurnCard:true, overlayReportBtn:true, overlayCompass:true, mapDefaultStyle:'street', mapDefault3d:false, nightAnnounce:true, nightDimLevel:55, restReminder:false }, window.__brodyLoad('broady_settings', {}));
 let trafficOn   = false;
-let currentMapStyle = 'dark';
+let currentMapStyle = 'street';
 let activeVehId = window.__brodyLoad('broady_active_veh', null);
 let garageVehicles = [];
 // Restore guest vehicles from localStorage on startup (no auth required)
@@ -4517,6 +4633,11 @@ if (!authToken) {
 let localReports = [];
 let tireData = {}; // tireId -> psi
 let addVehEditId = null;
+var _audioUnlocked  = false;
+var _ttsPlaying     = false;
+var _ttsAudio       = null;
+var _ttsPending     = null;
+var _ttsQueue       = [];
 let campFilter = 'all', truckFilter = 'all', nightSubtab = 'night';
 let tollTotal = 0;
 let map = null, gpsMarker = null, gpsCircle = null, tileLayer = null, trafficLayer = null, mustSeeLayer = null, campLayer = null;
@@ -4526,6 +4647,14 @@ let speedInterval = null;
 // ── Navigation ────────────────────────────────────────────────────────
 var NO_NAV = ['mapscreen','voicescreen','setupscreen','authscreen','garagescreen','fleetproscreen'];
 function goTo(id) {
+  // Always close route picker sheet on any navigation
+  var rps = document.getElementById('routePickerSheet');
+  if (rps) { rps.classList.remove('open'); rps.style.display = 'none'; }
+  // Clear stale routeOptions state when navigating to map with no active route
+  if (id === 'mapscreen' && routeSteps.length === 0) {
+    routeOptions = [];
+    selectedRouteIdx = 0;
+  }
   // Manage wake word listener
   if (id === 'voicescreen') { setTimeout(startWakeListen, 400); }
   else { stopWakeListen(); }
@@ -4536,7 +4665,7 @@ function goTo(id) {
     b.classList.toggle('on', b.id === m[id]);
   });
   const bn = document.getElementById('bottomnav');
-  bn.style.display = NO_NAV.includes(id) ? 'none' : '';
+  if (bn) bn.style.display = NO_NAV.includes(id) ? 'none' : '';
   if (id === 'mapscreen') {
     initMap();
     // Show route planner card if no active route; hide it when navigating
@@ -22362,15 +22491,16 @@ async function fetchSuggestions(text) {
   }));
 
   // Detect query category for smart filtering
-  const isTruckStopQuery  = TRUCK_STOP_CHAINS.some(c => textLower.includes(c.trim()));
-  const isGasQuery        = !isTruckStopQuery && GAS_STATION_CHAINS.some(c => textLower.includes(c.trim()));
-  const isHotelQuery      = !isTruckStopQuery && !isGasQuery && HOTEL_CHAINS.some(c => textLower.includes(c.trim()));
-  const isHospitalQuery   = !isTruckStopQuery && !isGasQuery && !isHotelQuery && HOSPITAL_CHAINS.some(c => textLower.includes(c.trim()));
-  const isPharmacyQuery   = !isTruckStopQuery && !isGasQuery && !isHotelQuery && !isHospitalQuery && PHARMACY_CHAINS.some(c => textLower.includes(c.trim()));
-  const isAutoPartsQuery  = !isTruckStopQuery && !isGasQuery && !isHotelQuery && !isHospitalQuery && !isPharmacyQuery && AUTO_PARTS_CHAINS.some(c => textLower.includes(c.trim()));
-  const isRvParkQuery     = !isTruckStopQuery && !isGasQuery && !isHotelQuery && !isHospitalQuery && !isPharmacyQuery && !isAutoPartsQuery && RV_PARK_CHAINS.some(c => textLower.includes(c.trim()));
-  const isNationalParkQuery = !isTruckStopQuery && !isGasQuery && !isHotelQuery && !isHospitalQuery && !isPharmacyQuery && !isAutoPartsQuery && !isRvParkQuery && NATIONAL_PARK_CHAINS.some(c => textLower.includes(c.trim()));
-  const isLandmarkQuery   = !isTruckStopQuery && !isGasQuery && !isHotelQuery && !isHospitalQuery && !isPharmacyQuery && !isAutoPartsQuery && !isRvParkQuery && !isNationalParkQuery && LANDMARK_CHAINS.some(c => textLower.includes(c.trim()));
+  const _cs = s => typeof s === 'string' ? s.trim() : '';
+  const isTruckStopQuery  = TRUCK_STOP_CHAINS.some(c => textLower.includes(_cs(c)));
+  const isGasQuery        = !isTruckStopQuery && GAS_STATION_CHAINS.some(c => textLower.includes(_cs(c)));
+  const isHotelQuery      = !isTruckStopQuery && !isGasQuery && HOTEL_CHAINS.some(c => textLower.includes(_cs(c)));
+  const isHospitalQuery   = !isTruckStopQuery && !isGasQuery && !isHotelQuery && HOSPITAL_CHAINS.some(c => textLower.includes(_cs(c)));
+  const isPharmacyQuery   = !isTruckStopQuery && !isGasQuery && !isHotelQuery && !isHospitalQuery && PHARMACY_CHAINS.some(c => textLower.includes(_cs(c)));
+  const isAutoPartsQuery  = !isTruckStopQuery && !isGasQuery && !isHotelQuery && !isHospitalQuery && !isPharmacyQuery && AUTO_PARTS_CHAINS.some(c => typeof c === 'string' && textLower.includes(c.trim()));
+  const isRvParkQuery     = !isTruckStopQuery && !isGasQuery && !isHotelQuery && !isHospitalQuery && !isPharmacyQuery && !isAutoPartsQuery && RV_PARK_CHAINS.some(c => typeof c === 'string' && textLower.includes(c.trim()));
+  const isNationalParkQuery = !isTruckStopQuery && !isGasQuery && !isHotelQuery && !isHospitalQuery && !isPharmacyQuery && !isAutoPartsQuery && !isRvParkQuery && NATIONAL_PARK_CHAINS.some(c => typeof c === 'string' && textLower.includes(c.trim()));
+  const isLandmarkQuery   = !isTruckStopQuery && !isGasQuery && !isHotelQuery && !isHospitalQuery && !isPharmacyQuery && !isAutoPartsQuery && !isRvParkQuery && !isNationalParkQuery && LANDMARK_CHAINS.some(c => typeof c === 'string' && textLower.includes(c.trim()));
   const isRestaurantQuery = !isTruckStopQuery && !isGasQuery && !isHotelQuery && !isHospitalQuery && !isPharmacyQuery && !isAutoPartsQuery && !isRvParkQuery && !isNationalParkQuery && !isLandmarkQuery && RESTAURANT_CHAINS.some(c => textLower.includes(c.replace(/'/g, '')));
 
   // Build Photon URL with category-specific OSM tag filters
@@ -22429,15 +22559,15 @@ async function fetchSuggestions(text) {
       const cityState = [addr.city || addr.town || addr.village || addr.county, addr.state].filter(Boolean).join(', ');
       const label = cityState ? name + ', ' + cityState : item.display_name.split(',').slice(0,3).join(',').trim();
       const nameLow = name.toLowerCase();
-      const isTruckStop  = TRUCK_STOP_CHAINS.some(c => nameLow.includes(c.trim()));
-      const isGasStation = !isTruckStop && GAS_STATION_CHAINS.some(c => nameLow.includes(c.trim()));
-      const isHotel      = !isTruckStop && !isGasStation && HOTEL_CHAINS.some(c => nameLow.includes(c.trim()));
-      const isHospital   = !isTruckStop && !isGasStation && !isHotel && HOSPITAL_CHAINS.some(c => nameLow.includes(c.trim()));
-      const isPharmacy   = !isTruckStop && !isGasStation && !isHotel && !isHospital && PHARMACY_CHAINS.some(c => nameLow.includes(c.trim()));
-      const isAutoParts  = !isTruckStop && !isGasStation && !isHotel && !isHospital && !isPharmacy && AUTO_PARTS_CHAINS.some(c => nameLow.includes(c.trim()));
-      const isRvPark       = !isTruckStop && !isGasStation && !isHotel && !isHospital && !isPharmacy && !isAutoParts && RV_PARK_CHAINS.some(c => nameLow.includes(c.trim()));
-      const isNationalPark = !isTruckStop && !isGasStation && !isHotel && !isHospital && !isPharmacy && !isAutoParts && !isRvPark && NATIONAL_PARK_CHAINS.some(c => nameLow.includes(c.trim()));
-      const isLandmark     = !isTruckStop && !isGasStation && !isHotel && !isHospital && !isPharmacy && !isAutoParts && !isRvPark && !isNationalPark && LANDMARK_CHAINS.some(c => nameLow.includes(c.trim()));
+      const isTruckStop  = TRUCK_STOP_CHAINS.some(c => nameLow.includes(typeof c==='string'?c.trim():''));
+      const isGasStation = !isTruckStop && GAS_STATION_CHAINS.some(c => nameLow.includes(typeof c==='string'?c.trim():''));
+      const isHotel      = !isTruckStop && !isGasStation && HOTEL_CHAINS.some(c => nameLow.includes(typeof c==='string'?c.trim():''));
+      const isHospital   = !isTruckStop && !isGasStation && !isHotel && HOSPITAL_CHAINS.some(c => nameLow.includes(typeof c==='string'?c.trim():''));
+      const isPharmacy   = !isTruckStop && !isGasStation && !isHotel && !isHospital && PHARMACY_CHAINS.some(c => nameLow.includes(typeof c==='string'?c.trim():''));
+      const isAutoParts  = !isTruckStop && !isGasStation && !isHotel && !isHospital && !isPharmacy && AUTO_PARTS_CHAINS.some(c => nameLow.includes(typeof c==='string'?c.trim():''));
+      const isRvPark       = !isTruckStop && !isGasStation && !isHotel && !isHospital && !isPharmacy && !isAutoParts && RV_PARK_CHAINS.some(c => nameLow.includes(typeof c==='string'?c.trim():''));
+      const isNationalPark = !isTruckStop && !isGasStation && !isHotel && !isHospital && !isPharmacy && !isAutoParts && !isRvPark && NATIONAL_PARK_CHAINS.some(c => nameLow.includes(typeof c==='string'?c.trim():''));
+      const isLandmark     = !isTruckStop && !isGasStation && !isHotel && !isHospital && !isPharmacy && !isAutoParts && !isRvPark && !isNationalPark && LANDMARK_CHAINS.some(c => nameLow.includes(typeof c==='string'?c.trim():''));
       const isFood         = !isTruckStop && !isGasStation && !isHotel && !isHospital && !isPharmacy && !isAutoParts && !isRvPark && !isNationalPark && !isLandmark && ['restaurant','fast_food','cafe','bar','pub','food_court'].includes(item.extratags?.amenity || item.class);
       nominatimResults.push({
         name,
@@ -22761,7 +22891,11 @@ var FALLBACK_COORDS = {
 };
 
 async function geocode(place) {
+  // Guard: place may be undefined if stop has no .value (coords-only stop)
+  if (place === undefined || place === null) return null;
+  if (typeof place !== 'string') return null;
   const k = place.trim().toLowerCase();
+  if (!k) return null;
   // If stop has cached coords (from autocomplete or GPS), use them directly
   const matchingStop = stops.find(s => s.value && s.value.toLowerCase() === k && s.coords);
   if (matchingStop) return matchingStop.coords;
@@ -22779,13 +22913,18 @@ async function geocode(place) {
 
 // ── Map ────────────────────────────────────────────────────────────────
 var MAP_TILES = {
-  street:    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  street:    'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
   satellite: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
   dark:      'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
   terrain:   'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
 };
 
 function initMap() {
+  // Re-enable pointer events on canvas after Leaflet attaches its handlers
+  var mc = document.getElementById('mapCanvas');
+  if (mc) mc.style.pointerEvents = 'auto';
+  // Invalidate Leaflet size in case container was hidden during init
+  if (typeof map !== "undefined" && map) { setTimeout(function(){ map.invalidateSize(); }, 100); }
   if (map) { map.invalidateSize(); buildRoute(); return; }
   map = L.map('mapCanvas', { zoomControl: false, preferCanvas: true }).setView([36.5,-78.5], 7);
   tileLayer = L.tileLayer(MAP_TILES[currentMapStyle], { maxZoom:18, attribution:'© OpenStreetMap' }).addTo(map);
@@ -22922,7 +23061,22 @@ function renderTurnStep(idx) {
   const distMi = (step.distance * 0.000621371);
   const distStr = distMi < 0.1 ? Math.round(distMi * 5280) + ' ft' : distMi.toFixed(1) + ' mi';
   document.getElementById('turnDist').textContent = distStr;
-  document.getElementById('turnStreet').textContent = step.instruction || step.name || 'Continue';
+  // Update remaining minutes in bottom bar
+  if (typeof remainingSecs !== 'undefined' && remainingSecs > 0) {
+    var remMin = Math.ceil(remainingSecs / 60);
+    var remEl = document.getElementById('mapRemMin');
+    if (remEl) remEl.textContent = remMin;
+  }
+  // Highway shield parsing for turn bar
+  var _sname = step.instruction || step.name || 'Continue';
+  var _sm = _sname.match(/^(I|US|SR|VA|MD|NC|DC|Interstate)[- ]?(\d+)\s*/i);
+  var _shtml = '';
+  if (_sm) {
+    var _isI = /^(I|Interstate)/i.test(_sm[1]);
+    _shtml = '<span class="route-shield ' + (_isI ? 'shield-interstate' : 'shield-us') + '">' + _sm[2] + '</span> ';
+    _sname = _sname.replace(/^(I|US|SR|VA|MD|NC|DC|Interstate)[- ]?\d+\s*/i, '').trim() || _sname;
+  }
+  document.getElementById('turnStreet').innerHTML = _shtml + _sname;
   document.getElementById('turnStepNum').textContent = 'Step ' + (idx+1) + ' of ' + routeSteps.length;
   document.getElementById('turnArrow').innerHTML = getTurnSvg(step.type);
   // Voice announcement
@@ -22964,7 +23118,7 @@ function advanceStep() {
     speak('You have arrived at your destination!');
     document.getElementById('turnNextBtn').style.display = 'none';
     document.getElementById('turnDist').textContent = '🏁';
-    document.getElementById('turnStreet').textContent = 'Arrived at destination';
+    document.getElementById('turnStreet').innerHTML = 'Arrived at destination';
     document.getElementById('turnStepNum').textContent = '';
   }
 }
@@ -23119,7 +23273,13 @@ async function buildRoute() {
   const badge = document.getElementById('routeTypeBadge');
   if (badge) { badge.textContent=hgv?'HGV Route':'Car Route'; badge.className='route-type-badge '+(hgv?'hgv':'car'); }
   try {
-    const coordPairs = await Promise.all(stops.map(s=>geocode(s.value)));
+    // Use cached lat/lng when available (set by mapSelectDest), else geocode the value string
+    const coordPairs = await Promise.all(stops.map(s => {
+      if (s.lat != null && s.lng != null) return [s.lat, s.lng];
+      if (s.coords) return s.coords;
+      if (s.value) return geocode(s.value);
+      return null;
+    }));
     const valid = coordPairs.filter(Boolean);
     if (valid.length<2) { loading.classList.remove('show'); toast('Add a starting point and destination.'); return; }
     await buildProxyRoute(valid, coordPairs, hgv, r, loading);
@@ -23232,9 +23392,9 @@ async function buildProxyRoute(valid, all, hgv, r, loading) {
       if (!coords || coords.length < 2) return;
       const color = palette[i % palette.length];
       const pl = L.polyline(coords, {
-        color, weight: i === 0 ? 6 : 4,
-        opacity: i === 0 ? 0.9 : 0.38,
-        dashArray: i === 0 ? null : '8 5'
+        color, weight: i === 0 ? 10 : 5,
+        opacity: i === 0 ? 0.95 : 0.38,
+        dashArray: i === 0 ? null : '10 6'
       });
       pl._br = true;
       pl.addTo(map);
@@ -23346,7 +23506,7 @@ function showRoutePicker(hgv) {
   });
 
   selectedRouteIdx = 0;
-  sheet.classList.add('open');
+  sheet.style.display = ''; sheet.classList.add('open');
 
   // Render trip cost card for selected route
   const firstOpt = routeOptions[0];
@@ -23382,6 +23542,15 @@ function selectRouteOption(idx) {
   }
 }
 
+function toggleRpDetails() {
+  var panel = document.getElementById('rpDetailsPanel');
+  var arrow = document.getElementById('rpDetailsArrow');
+  if (!panel) return;
+  var open = panel.style.display !== 'none';
+  panel.style.display = open ? 'none' : 'block';
+  if (arrow) arrow.innerHTML = open ? '&#9660;' : '&#9650;';
+}
+
 function closeRoutePicker() {
   document.getElementById('routePickerSheet').classList.remove('open');
 }
@@ -23393,11 +23562,22 @@ function confirmRoute() {
   const hgv = pendingHgv, r = pendingRig;
   // Remove non-selected polylines
   routeOptions.forEach((o,i)=>{ if(i!==selectedRouteIdx && o.polyline) { map.removeLayer(o.polyline); } });
-  // Restyle chosen polyline
+  // Restyle chosen polyline (guard: polyline may be null if map was not ready when route loaded)
   const chosenPl = opt.polyline;
-  chosenPl.setStyle({color: hgv?'#ffa500':'#4ecdc4', weight:6, opacity:.9, dashArray:null});
-  routePolyline = chosenPl;
-  addMileMarkers(opt.coords);
+  if (chosenPl) {
+    chosenPl.setStyle({color: hgv?'#ffa500':'#4ecdc4', weight:10, opacity:.95, dashArray:null});
+    routePolyline = chosenPl;
+  } else if (opt.coords && opt.coords.length) {
+    // Polyline was never drawn (map was hidden when route loaded) — draw it now
+    routePolyline = L.polyline(opt.coords, {color: hgv?'#ffa500':'#4ecdc4', weight:10, opacity:.95}).addTo(map);
+    opt.polyline = routePolyline;
+  }
+  if (opt.coords && opt.coords.length) {
+    addMileMarkers(opt.coords);
+    map.fitBounds(L.latLngBounds(opt.coords), {padding:[40,40]});
+    // Ensure polyline is visible after fitBounds (Carto Voyager tiles sometimes need a nudge)
+    setTimeout(function(){ if(routePolyline && routePolyline.redraw) routePolyline.redraw(); }, 150);
+  }
   activeRouteCoords = opt.coords || []; // store for GPS step advance
   window.routeCoords = opt.coords || []; // expose for route weather sampling
   // Set stats
@@ -23455,7 +23635,34 @@ function confirmRoute() {
     setTimeout(() => speak(summary), 600);
   }
   // Navigate to map screen so driver sees turn-by-turn immediately
+  // Force-hide route picker (belt-and-suspenders)
+  var _rps = document.getElementById('routePickerSheet');
+  if (_rps) { _rps.classList.remove('open'); _rps.style.display = 'none'; }
   goTo('mapscreen');
+  // Show bottom stats bar and turn bar
+  var mbb = document.getElementById('mapBottomBar');
+  if (mbb) mbb.style.display = '';
+  var tb = document.getElementById('turnBar');
+  if (tb) tb.style.display = '';
+  // Show speed badge and road pill placeholders
+  var sb = document.getElementById('speedBadge');
+  if (sb) sb.style.display = 'flex';
+  // Remaining minutes init
+  if (typeof sum !== 'undefined' && sum.duration) {
+    var remMin0 = Math.ceil(sum.duration / 60);
+    var remEl0 = document.getElementById('mapRemMin');
+    if (remEl0) remEl0.textContent = remMin0;
+  }
+  // Force map resize so Leaflet redraws tiles + polyline
+  setTimeout(function() {
+    if (typeof map !== 'undefined' && map) {
+      map.invalidateSize(true);
+      if (routePolyline) {
+        routePolyline.redraw();
+        map.fitBounds(routePolyline.getBounds(), {padding:[60,60]});
+      }
+    }
+  }, 200);
 }
 
 function showRouteRetryBtn(valid, all, hgv, r) {
@@ -23594,6 +23801,12 @@ function stopGps() {
   setGpsUI('off','Tap to enable GPS');
   document.getElementById('speedVal').textContent='—';
   document.getElementById('mapSpeed').textContent='—';
+  var sb2 = document.getElementById('speedBadge');
+  if (sb2) sb2.style.display = 'none';
+  var pill2 = document.getElementById('currentRoadPill');
+  if (pill2) pill2.style.display = 'none';
+  var mbb2 = document.getElementById('mapBottomBar');
+  if (mbb2) mbb2.style.display = 'none';
 }
 
 // ══ AUTO-NIGHT NAV ENGINE ═════════════════════════════════════════════
@@ -23806,6 +24019,34 @@ function startNightNavTimer() {
   nightNavCheckTimer = setInterval(checkNightNav, 60 * 1000);
 }
 
+// ── Current road name (Waze road pill) ──────────────────────────────
+var _lastRoadFetch = 0;
+var _lastRoadCoords = null;
+async function fetchCurrentRoad(lat, lng) {
+  var now = Date.now();
+  // throttle: only fetch every 8 seconds or if moved >100m
+  if (now - _lastRoadFetch < 8000) return;
+  if (_lastRoadCoords) {
+    var dlat = lat - _lastRoadCoords[0], dlng = lng - _lastRoadCoords[1];
+    if (Math.sqrt(dlat*dlat + dlng*dlng) < 0.001) return;
+  }
+  _lastRoadFetch = now;
+  _lastRoadCoords = [lat, lng];
+  try {
+    var r = await fetch('https://nominatim.openstreetmap.org/reverse?lat=' + lat + '&lon=' + lng + '&format=json&zoom=16', {
+      headers: { 'Accept-Language': 'en' }
+    });
+    var d = await r.json();
+    var road = (d.address && (d.address.road || d.address.highway || d.address.motorway)) || null;
+    var pill = document.getElementById('currentRoadPill');
+    var pillName = document.getElementById('currentRoadName');
+    if (pill && pillName && road) {
+      pillName.textContent = road;
+      pill.style.display = 'flex';
+    }
+  } catch(e) {}
+}
+
 function onGps(p) {
   const {latitude:lat,longitude:lng,accuracy,speed,heading} = p.coords;
   gpsLat=lat; gpsLng=lng;
@@ -23816,6 +24057,13 @@ function onGps(p) {
   }
   document.getElementById('speedVal').textContent = currentSpeed + ' mph';
   document.getElementById('mapSpeed').textContent = currentSpeed;
+  // Waze-style speed badge
+  var sb = document.getElementById('speedBadge');
+  var sbv = document.getElementById('speedBadgeVal');
+  if (sb) { sb.style.display = routeSteps.length > 0 ? 'flex' : 'none'; }
+  if (sbv) sbv.textContent = currentSpeed;
+  // Fetch current road name from Nominatim reverse geocode (throttled)
+  if (routeSteps.length > 0) fetchCurrentRoad(lat, lng);
   checkSpeedAlert();
   // Fetch real speed limit for current road
   if (currentSpeed > 2) scheduleFetchSpeedLimit(lat, lng);
@@ -24562,8 +24810,8 @@ out 5;`;
         const nameLow = name.toLowerCase();
         let score = q.bonus;
         // Boost known chains
-        if (TRUCK_STOP_CHAINS.some(c => nameLow.includes(c.trim()))) score += 30;
-        if (GAS_STATION_CHAINS.some(c => nameLow.includes(c.trim()))) score += 10;
+        if (TRUCK_STOP_CHAINS.some(c => nameLow.includes(typeof c==='string'?c.trim():''))) score += 30;
+        if (GAS_STATION_CHAINS.some(c => nameLow.includes(typeof c==='string'?c.trim():''))) score += 10;
         if (RESTAURANT_CHAINS.some(c => nameLow.includes(c.replace(/'/g,'')))) score += 8;
         // Boost amenity tags
         if (n.tags.shower === 'yes' || n.tags['shower:fee'] === 'no') score += 10;
@@ -24580,8 +24828,8 @@ out 5;`;
       // Build icon and sub
       let icon = q.defaultIcon;
       let sub  = q.defaultSub;
-      if (TRUCK_STOP_CHAINS.some(c => nameLow.includes(c.trim()))) { icon = '🚛'; sub = 'Truck Stop'; }
-      else if (GAS_STATION_CHAINS.some(c => nameLow.includes(c.trim()))) { icon = '⛽'; sub = 'Gas Station'; }
+      if (TRUCK_STOP_CHAINS.some(c => nameLow.includes(typeof c==='string'?c.trim():''))) { icon = '🚛'; sub = 'Truck Stop'; }
+      else if (GAS_STATION_CHAINS.some(c => nameLow.includes(typeof c==='string'?c.trim():''))) { icon = '⛽'; sub = 'Gas Station'; }
       else if (RESTAURANT_CHAINS.some(c => nameLow.includes(c.replace(/'/g,'')))) { icon = '🍽️'; sub = 'Restaurant'; }
 
       // Tags / amenities
@@ -25548,25 +25796,12 @@ function speak(text){
   else _doTTSPlay(filtered,voice,speed);
 }
 function _speakFallback(text){
+  // Never fall back to robotic browser TTS — if ElevenLabs failed, just log it
+  console.warn('Broady TTS: ElevenLabs unavailable, skipping audio for:', text.slice(0,60));
   _ttsPlaying=false;
-  if(!window.speechSynthesis){_ttsOnEnd();return;}
-  window.speechSynthesis.cancel();
-  var u=new SpeechSynthesisUtterance(text);
-  u.rate=(settings.voiceGender==='female')?0.88:0.72;
-  u.pitch=(settings.voiceGender==='female')?1.15:0.85;
-  u.volume=1.0;
-  var v=getBroVoice();if(v)u.voice=v;
-  u.onend=function(){_ttsOnEnd();};
-  u.onerror=function(){_ttsOnEnd();};
-  window.speechSynthesis.speak(u);
+  _ttsOnEnd();
 }
 
-// Voices load async on some browsers — reset cache when they change
-if (window.speechSynthesis) {
-  window.speechSynthesis.onvoiceschanged = () => { _broVoice = null; applySettings(); };
-}
-
-// Generate Bro's reply with multi-turn context awareness
 function broReply(userText) {
   broMemory.updateCtx();
   const u = userText.toLowerCase();
@@ -26256,10 +26491,90 @@ async function init() {
   } else if (rig) {
     goTo('home');
   } else {
-    goTo('setupscreen'); // fresh user — configure rig first
+    // Only show setup wizard on very first ever launch (never seen the app)
+    var _seenBefore = window['local'+'Storage'].getItem('broady_seen');
+    if (_seenBefore) {
+      goTo('home'); // returning user without rig — just go home, rig card prompts setup
+    } else {
+      window['local'+'Storage'].setItem('broady_seen', '1');
+      goTo('setupscreen');
+    }
   }
   updateRigCard();
 }
+
+// ── Map screen search bar ──────────────────────────────────────────────────
+var _mapDestDebounce = null;
+async function mapHandleDestInput(val) {
+  var clearBtn = document.getElementById('mapSearchClearBtn');
+  var sugg = document.getElementById('mapSuggestions');
+  if (clearBtn) clearBtn.style.display = val ? '' : 'none';
+  if (!val || val.length < 2) { if (sugg) sugg.style.display = 'none'; return; }
+  clearTimeout(_mapDestDebounce);
+  _mapDestDebounce = setTimeout(async function() {
+    var results = await fetchSuggestions(val);
+    if (!results || !results.length) { if (sugg) sugg.style.display = 'none'; return; }
+    sugg.innerHTML = results.slice(0, 6).map(function(r, i) {
+      return '<div onclick="mapSelectDest(' + i + ')" style="' +
+        'padding:12px 16px; border-bottom:1px solid rgba(255,255,255,.07);' +
+        'cursor:pointer; display:flex; align-items:center; gap:10px;' +
+        'font-size:.88rem; font-weight:600; color:#fff;">' +
+        '<span style="font-size:1rem;">' + (r.icon||'📍') + '</span>' +
+        '<div><div>' + r.name + '</div>' +
+        (r.sub ? '<div style="font-size:.75rem;color:rgba(255,255,255,.45);font-weight:400;">' + r.sub + '</div>' : '') +
+        '</div></div>';
+    }).join('');
+    window._mapSuggResults = results;
+    sugg.style.display = '';
+  }, 350);
+}
+function mapSearchFocus() {
+  var inp = document.getElementById('mapDestInput');
+  if (inp && inp.value.length >= 2) mapHandleDestInput(inp.value);
+}
+function mapClearSearch() {
+  var inp = document.getElementById('mapDestInput');
+  var sugg = document.getElementById('mapSuggestions');
+  var clearBtn = document.getElementById('mapSearchClearBtn');
+  if (inp) inp.value = '';
+  if (sugg) sugg.style.display = 'none';
+  if (clearBtn) clearBtn.style.display = 'none';
+}
+function mapSelectDest(idx) {
+  var results = window._mapSuggResults || [];
+  var r = results[idx];
+  if (!r) return;
+  var sugg = document.getElementById('mapSuggestions');
+  var inp = document.getElementById('mapDestInput');
+  if (sugg) sugg.style.display = 'none';
+  if (inp) inp.value = r.name;
+  // Mirror to destInput and departureInput so buildRoute works
+  var destEl = document.getElementById('destInput');
+  if (destEl) { destEl.value = r.name; }
+  // Set stop destination coords directly
+  if (r.coords) {
+    if (!stops) stops = [];
+    if (stops.length < 2) {
+      stops[0] = stops[0] || { lat: gpsLat, lng: gpsLng, lng: gpsLng, value: 'Current Location', label: 'Current Location' };
+      stops[0].lat = stops[0].lat || gpsLat; stops[0].lng = stops[0].lng || gpsLng;
+      stops[1] = { lat: r.coords[0], lng: r.coords[1], value: r.label || r.name, label: r.name };
+    } else { stops[stops.length-1] = { lat: r.coords[0], lng: r.coords[1], value: r.label || r.name, label: r.name }; }
+    buildRoute();
+  } else {
+    // Need geocoding — use the existing route builder
+    var destEl2 = document.getElementById('destInput');
+    if (destEl2) { destEl2.value = r.label || r.name; destEl2.dispatchEvent(new Event('change')); }
+    buildRoute();
+  }
+}
+// Hide map suggestions when tapping map
+document.addEventListener('DOMContentLoaded', function() {
+  var canvas = document.getElementById('mapCanvas');
+  if (canvas) canvas.addEventListener('click', function() {
+    var sugg = document.getElementById('mapSuggestions');
+    if (sugg) sugg.style.display = 'none';
+  });
+});
 
 init();
 
@@ -27026,12 +27341,12 @@ function startTripTimer() {
 }
 
 function endTripAndLog(distMi, fuelCost) {
-  if (!
-  // Restore route planner card
+  if (!tripStartTime) return;
+  // Restore route planner card after trip ends
   var rc = document.getElementById('routeCard');
   var mb = document.querySelector('.map-bottom');
   if (rc) rc.style.display = '';
-  if (mb) mb.style.display = 'none';tripStartTime) return;
+  if (mb) mb.style.display = 'none';
   const driveMs = Date.now() - tripStartTime;
   tripStartTime = null;
   const h = Math.floor(driveMs / 3600000);
@@ -29332,7 +29647,7 @@ function rpGoToPlace(type) {
 
 // ── Destination input handlers (new route planner card) ──────────
 var _destDebounce = null;
-function handleDestInput() {
+async function handleDestInput() {
   const inp = document.getElementById('destInput');
   if (!inp) return;
   const val = inp.value.trim();
@@ -32598,6 +32913,191 @@ function getNearbyFuelPrices() {
 // ═══════════════════════════════════════════════════════════════
 // MOOD BUTTONS — wire into voice commands
 // ═══════════════════════════════════════════════════════════════
+
+// ── Nearest POI intent ─────────────────────────────────────────
+var _origBroReplyv38 = broReply;
+broReply = function(userText) {
+  var u = userText.toLowerCase().trim();
+
+  // Match: "nearest X", "find X near me", "where is the closest X", etc.
+  var nearMatch = u.match(/(?:nearest|closest|find.*near(?:by| me)?|where.*nearest|where.*closest|any.*near(?:by| me)?)\s+(.+)/) ||
+                  u.match(/^(?:find|get)\s+(.+?)\s+near(?:by| me)?$/i) ||
+                  u.match(/^(.+?)\s+near(?:by| me)?$/i);
+
+  if (nearMatch) {
+    var query = nearMatch[1].replace(/^(a|an|the)\s+/i,'').trim();
+    // Exclude short noise words
+    if (query.length > 2) {
+      _findNearestPOI(query, userText);
+      return 'On it! Searching for the nearest ' + query + ' near you...';
+    }
+  }
+
+  // Navigate to / go to / take me to / directions to
+  var navMatch = u.match(/(?:navigate to|take me to|go to|get directions to|route to)\s+(.+)/);
+  if (navMatch) {
+    var dest = navMatch[1].trim();
+    // Populate the map search with this destination
+    _broNavigateTo(dest, userText);
+    return 'On it! Setting up a route to ' + dest + '...';
+  }
+
+  return _origBroReplyv38(userText);
+};
+
+async function _findNearestPOI(query, originalText) {
+  var chatEl = document.getElementById('vChat');
+  // Get GPS position
+  var lat = (typeof gpsLat !== 'undefined' && gpsLat) ? gpsLat : null;
+  var lon = (typeof gpsLng !== 'undefined' && gpsLng) ? gpsLng : null;
+
+  if (!lat || !lon) {
+    // Try to get position on the fly
+    try {
+      await new Promise(function(resolve) {
+        navigator.geolocation.getCurrentPosition(function(pos) {
+          lat = pos.coords.latitude;
+          lon = pos.coords.longitude;
+          resolve();
+        }, function() { resolve(); }, {timeout:5000});
+      });
+    } catch(e) {}
+  }
+
+  if (!lat) {
+    setBro(originalText, 'I need your GPS to find nearby spots. Make sure location is on and tap GPS up top!');
+    return;
+  }
+
+  // Map common brand/food names to OSM query terms
+  var qMap = {
+    'bojangles': 'Bojangles',
+    'flying j': 'Flying J',
+    'pilot': 'Pilot Flying J',
+    'loves': "Love's Travel Stop",
+    'ta': 'TravelCenters',
+    'petro': 'Petro',
+    'mcdonald': 'McDonald',
+    'burger king': 'Burger King',
+    'wendys': "Wendy's",
+    'subway': 'Subway',
+    'waffle house': 'Waffle House',
+    'cracker barrel': 'Cracker Barrel',
+    'gas': null,
+    'diesel': null,
+    'fuel': null,
+    'rest area': null,
+    'truck stop': null,
+  };
+
+  // Build Overpass query — search by name around current location (25km radius)
+  var radius = 25000; // 25km
+  var osm_q;
+  var lqm = query.toLowerCase();
+  var mappedName = null;
+  for (var k in qMap) {
+    if (lqm.includes(k)) { mappedName = qMap[k]; break; }
+  }
+
+  if (mappedName !== null) {
+    // Named brand search
+    var safeName = (mappedName || query).replace(/'/g, "\\'");
+    osm_q = '[out:json][timeout:10];(node[name~"' + safeName + '",i](around:' + radius + ',' + lat + ',' + lon + ');way[name~"' + safeName + '",i](around:' + radius + ',' + lat + ',' + lon + '););out body 5;';
+  } else {
+    // Generic amenity search — map natural language to OSM amenity tags
+    var amenityMap = {
+      'restaurant': 'restaurant', 'food': 'restaurant', 'eat': 'restaurant',
+      'gas station': 'fuel', 'fuel station': 'fuel', 'gas': 'fuel',
+      'hospital': 'hospital', 'pharmacy': 'pharmacy', 'atm': 'atm',
+      'hotel': 'hotel', 'motel': 'hotel', 'rest area': 'rest_area',
+      'coffee': 'cafe', 'cafe': 'cafe', 'grocery': 'supermarket',
+    };
+    var amenityTag = 'restaurant';
+    for (var k2 in amenityMap) {
+      if (lqm.includes(k2)) { amenityTag = amenityMap[k2]; break; }
+    }
+    osm_q = '[out:json][timeout:10];(node[amenity=' + amenityTag + '](around:' + radius + ',' + lat + ',' + lon + '););out body 5;';
+  }
+
+  try {
+    var resp = await fetch('https://overpass-api.de/api/interpreter', {
+      method: 'POST',
+      body: 'data=' + encodeURIComponent(osm_q),
+      headers: {'Content-Type':'application/x-www-form-urlencoded'},
+    });
+    var data = await resp.json();
+    var elements = (data.elements || []).filter(function(e) { return e.tags && e.tags.name; });
+
+    if (elements.length === 0) {
+      setBro(originalText, 'I searched nearby but couldn not find a ' + query + ' within 25 miles. Want me to try a wider area?');
+      return;
+    }
+
+    // Sort by distance
+    function haversine(la1, lo1, la2, lo2) {
+      var R = 3959;
+      var dLat = (la2-la1)*Math.PI/180;
+      var dLon = (lo2-lo1)*Math.PI/180;
+      var a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2);
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    }
+    elements.forEach(function(e) {
+      e._dist = haversine(lat, lon, e.lat || lat, e.lon || lon);
+    });
+    elements.sort(function(a,b) { return a._dist - b._dist; });
+
+    var top = elements.slice(0,3);
+    var nearest = top[0];
+    var nearestName = nearest.tags.name;
+    var nearestAddr = [nearest.tags['addr:housenumber'], nearest.tags['addr:street'], nearest.tags['addr:city']].filter(Boolean).join(' ') || '';
+    var distMi = nearest._dist.toFixed(1);
+
+    var replyText;
+    if (top.length === 1) {
+      replyText = 'Found one! ' + nearestName + (nearestAddr ? ' at ' + nearestAddr : '') + ', about ' + distMi + ' miles away. Want me to navigate there?';
+    } else {
+      var others = top.slice(1).map(function(e){ return e.tags.name + ' (' + e._dist.toFixed(1) + ' mi)'; }).join(', ');
+      replyText = 'Nearest ' + query + ': ' + nearestName + (nearestAddr ? ' at ' + nearestAddr : '') + ', ' + distMi + ' miles away. Also nearby: ' + others + '. Want me to navigate there?';
+    }
+
+    // Offer navigation — tap reply bubble triggers nav
+    if (chatEl) {
+      var broDiv = document.createElement('div');
+      broDiv.style.cssText = 'margin:8px 0;';
+      var navDest = nearestName + (nearestAddr ? ', ' + nearestAddr : '');
+      var msgWrap = document.createElement('div');
+      msgWrap.style.cssText = 'padding:10px 14px;background:rgba(255,255,255,.12);border-radius:14px 14px 14px 4px;color:#fff;font-size:.9rem;line-height:1.5;';
+      var msgText = document.createElement('div');
+      msgText.innerHTML = '<strong>BRO</strong><br>' + replyText;
+      var navBtn = document.createElement('button');
+      navBtn.textContent = 'Navigate there';
+      navBtn.style.cssText = 'margin-top:10px;display:block;background:#ffbe00;color:#1a2a4a;border:none;border-radius:20px;padding:7px 18px;font-weight:800;font-size:.85rem;cursor:pointer;';
+      navBtn.addEventListener('click', function() { _broNavigateTo(navDest, null); });
+      msgWrap.appendChild(msgText);
+      msgWrap.appendChild(navBtn);
+      broDiv.appendChild(msgWrap);
+      chatEl.appendChild(broDiv);
+      chatEl.scrollTop = chatEl.scrollHeight;
+    }
+    speak(replyText);
+  } catch(err) {
+    setBro(originalText, 'My GPS brain had a hiccup finding that. Try again or type it in the search bar on the map!');
+  }
+}
+
+function _broNavigateTo(dest, originalText) {
+  // Switch to map tab and pre-fill the destination
+  goTo('mapscreen');
+  setTimeout(function() {
+    var inp = document.getElementById('mapDestInput');
+    if (inp) {
+      inp.value = dest;
+      mapHandleDestInput(dest);
+    }
+  }, 400);
+}
+// ── End nearest POI ─────────────────────────────────────────────
+
 // Extend broReply to handle new commands
 var _origBroReply = broReply;
 broReply = function(userText) {
@@ -33900,6 +34400,30 @@ showRecentDests = function(inp, stop, onSelect) {
 
 
   <audio id="broAudio" playsinline style="display:none"></audio>
+
+<!-- ══ BOTTOM NAV — 5 TABS ══ -->
+  <div id="bottomnav">
+    <button class="nav-btn on" id="navHome" onclick="goTo('home')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9.5L12 3l9 6.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1V9.5z"/></svg>
+      Home
+    </button>
+    <button class="nav-btn" id="navMap" onclick="goTo('mapscreen')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4-7 4z"/><path d="M8 2v16M16 6v16"/></svg>
+      Map
+    </button>
+    <button class="nav-btn" id="navBro" onclick="goTo('voicescreen')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+      Bro
+    </button>
+    <button class="nav-btn" id="navGarage" onclick="goTo('garagescreen')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21V10l9-6 9 6v11h-6v-6H9v6H3z"/></svg>
+      Garage
+    </button>
+    <button class="nav-btn" id="navSettings" onclick="goTo('settingsscreen')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Settings
+    </button>
+  </div>
 
 </body>
 </html>
