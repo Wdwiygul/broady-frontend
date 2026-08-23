@@ -22925,7 +22925,7 @@ function initMap() {
   if (mc) mc.style.pointerEvents = 'auto';
   // Invalidate Leaflet size in case container was hidden during init
   if (typeof map !== "undefined" && map) { setTimeout(function(){ map.invalidateSize(); }, 100); }
-  if (map) { map.invalidateSize(); buildRoute(); return; }
+  if (map) { map.invalidateSize(); if(window._pendingHomeRoute||activeRouteCoords){buildRoute();} return; }
   map = L.map('mapCanvas', { zoomControl: false, preferCanvas: true }).setView([36.5,-78.5], 7);
   tileLayer = L.tileLayer(MAP_TILES[currentMapStyle], { maxZoom:18, attribution:'© OpenStreetMap' }).addTo(map);
   L.control.zoom({ position:'bottomright' }).addTo(map);
@@ -23261,6 +23261,7 @@ async function buildRoute() {
   var mb = document.querySelector('.map-bottom');
   if (rc) rc.style.display = 'none';
   if (mb) mb.style.display = '';
+  window._pendingHomeRoute = false; // clear the flag — map is ready, we're building
   if (!map) return;
   map.eachLayer(l=>{ if(l._br) map.removeLayer(l); });
   renderMustSeePins();
@@ -26390,10 +26391,14 @@ function startVoice(){
 
 function demoVoice(t) { handleVoice(t); }
 
+var _sendTypedPending = false;
 function sendTyped() {
+  if (_sendTypedPending) return;  // debounce double-fire (Enter + button click)
+  _sendTypedPending = true;
+  setTimeout(function(){ _sendTypedPending = false; }, 300);
   const input = document.getElementById('vTypeInput');
   const text = input.value.trim();
-  if (!text) return;
+  if (!text) { _sendTypedPending = false; return; }
   input.value = '';
   // For typed input: skip spoken ack, go straight to reply pipeline
   handleVoiceTyped(text);
@@ -26463,9 +26468,12 @@ document.getElementById('goBtn').addEventListener('click', ()=>{
   toggleStopFilterPanel(false);
   const o=stops[0].value.trim(), d=stops[stops.length-1].value.trim();
   if (!o||!d) { toast('Enter a starting point and destination.'); return; }
-  // No rig set — default to car routing, don't block
+  // Navigate to map — initMap() will call buildRoute() once the Leaflet map is ready.
+  // Set a flag so initMap knows to build the route even if called for first time.
+  window._pendingHomeRoute = true;
   goTo('mapscreen');
-  setTimeout(()=>buildRoute(), 100);
+  // Fallback: if map already exists, build now with a small buffer for display
+  if (window.map) { setTimeout(()=>buildRoute(), 150); }
 });
 document.getElementById('saveVehBtn').addEventListener('click', saveVehicle);
 
@@ -32991,7 +32999,7 @@ async function _findNearestPOI(query, originalText) {
   };
 
   // Build Overpass query — search by name around current location (25km radius)
-  var radius = 25000; // 25km
+  var radius = 80000; // 80km (~50 miles) — wider for regional chains
   var osm_q;
   var lqm = query.toLowerCase();
   var mappedName = null;
@@ -33029,7 +33037,7 @@ async function _findNearestPOI(query, originalText) {
     var elements = (data.elements || []).filter(function(e) { return e.tags && e.tags.name; });
 
     if (elements.length === 0) {
-      setBro(originalText, 'I searched nearby but couldn not find a ' + query + ' within 25 miles. Want me to try a wider area?');
+      setBro(originalText, 'I searched nearby but could not find a ' + query + ' within 50 miles. Want me to try a wider area?');
       return;
     }
 
