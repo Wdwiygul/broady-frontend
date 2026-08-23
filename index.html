@@ -37,7 +37,7 @@
     /* ══════════════════════════════════════════════════════
        HOME SCREEN  — TomTom-inspired: mascot + quick actions
     ══════════════════════════════════════════════════════ */
-    #home {
+    #home { overflow-x: hidden;
       background: linear-gradient(160deg, #0d1b4b 0%, #1a3a8f 55%, #1e4fd8 100%);
       overflow-y: auto;
       padding-bottom: calc(72px + env(safe-area-inset-bottom));
@@ -2394,7 +2394,7 @@
     </div>
 
     <!-- Mascot + greeting -->
-    <div class="home-scroll-wrap" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(64px + env(safe-area-inset-bottom));">
+    <div class="home-scroll-wrap" style="flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:calc(64px + env(safe-area-inset-bottom));width:100%;box-sizing:border-box;">
     <div class="mascot-hero">
       <div class="mascot-greeting">
         <strong>Hey, I'm <span id="setupBroName">Bro</span>!</strong>
@@ -2404,7 +2404,7 @@
     </div>
 
     <!-- WHERE TO? search bar — Waze-style, always visible on home -->
-    <div id="homeSearchBar" onclick="goTo('mapscreen');setTimeout(function(){var i=document.getElementById('mapDestInput');if(i){i.focus();}},200);" style="
+    <div id="homeSearchBar" onclick="goTo('mapscreen');setTimeout(function(){var i=document.getElementById('mapDestInput');if(i){i.focus();}},200);" style="box-sizing:border-box;
       margin:0 14px 14px;
       background:rgba(255,255,255,.1);
       border:1.5px solid rgba(255,255,255,.18);
@@ -22521,11 +22521,15 @@ async function fetchSuggestions(text) {
     + '&format=jsonv2&limit=6&addressdetails=1&extratags=1'
     + (isTruckStopQuery || isGasQuery ? '&amenity=fuel' : '');
 
-  // Fire ORS + Photon + Nominatim all in parallel
-  const [orsResult, photonResult, nominatimResult] = await Promise.allSettled([
+  // Fire ORS + Photon + Nominatim + Google Places all in parallel
+  var userPos = (typeof map !== 'undefined' && map && typeof map.getCenter === 'function') ? map.getCenter() : null;
+  var placesQs = BACKEND_URL + '/api/places?text=' + encodeURIComponent(text)
+    + (userPos ? '&lat=' + userPos.lat + '&lng=' + userPos.lng : '');
+  const [orsResult, photonResult, nominatimResult, placesResult] = await Promise.allSettled([
     fetch(BACKEND_URL + '/api/geocode?text=' + encodeURIComponent(text)).then(r => r.ok ? r.json() : null),
     fetch(photonUrl).then(r => r.ok ? r.json() : null),
-    fetch(nominatimUrl, { headers: { 'Accept-Language': 'en' } }).then(r => r.ok ? r.json() : null)
+    fetch(nominatimUrl, { headers: { 'Accept-Language': 'en' } }).then(r => r.ok ? r.json() : null),
+    fetch(placesQs).then(r => r.ok ? r.json() : null)
   ]);
 
   // ORS results (best for street addresses)
@@ -22579,15 +22583,32 @@ async function fetchSuggestions(text) {
     });
   }
 
-  // Merge order: for known chains boost Nominatim (brand DB) to front;
-  // for general queries Photon (POI names) leads
+  // Google Places results (200M+ places — best for business names and chains)
+  const googleResults = [];
+  if (placesResult && placesResult.status === 'fulfilled' && placesResult.value && placesResult.value.results && placesResult.value.results.length) {
+    placesResult.value.results.forEach(function(p) {
+      if (!p.lat || !p.lng) return;
+      var nameLow = p.name.toLowerCase();
+      var isTruck = TRUCK_STOP_CHAINS.some(function(c){ return nameLow.includes(typeof c==='string'?c.trim():''); });
+      var isGas2  = GAS_STATION_CHAINS.some(function(c){ return nameLow.includes(typeof c==='string'?c.trim():''); });
+      var isEat   = RESTAURANT_CHAINS.some(function(c){ return nameLow.includes(c.replace(/'/g,'')); });
+      var gIcon   = (isTruck || isGas2) ? '⛽' : isEat ? '🍔' : '📍';
+      googleResults.push({ name: p.name, sub: p.address, label: p.name + (p.address ? ', ' + p.address : ''), coords: [p.lat, p.lng], icon: gIcon });
+    });
+  }
+
+  // Merge order: Google Places leads for business/chain queries (best coverage),
+  // Nominatim leads for other known-chain queries, Photon leads for general POI
+  var isBusinessQuery = isTruckStopQuery || isGasQuery || isHotelQuery || isHospitalQuery || isPharmacyQuery || isAutoPartsQuery || isRvParkQuery || isRestaurantQuery;
   let ordered;
-  if (isTruckStopQuery || isGasQuery || isHotelQuery || isHospitalQuery || isPharmacyQuery || isAutoPartsQuery || isRvParkQuery) {
+  if (isBusinessQuery && googleResults.length) {
+    ordered = [...googleResults, ...nominatimResults, ...photonResults, ...orsResults, ...fallbackResults];
+  } else if (isTruckStopQuery || isGasQuery || isHotelQuery || isHospitalQuery || isPharmacyQuery || isAutoPartsQuery || isRvParkQuery) {
     ordered = [...nominatimResults, ...photonResults, ...orsResults, ...fallbackResults];
   } else if (isNationalParkQuery || isLandmarkQuery) {
     ordered = [...photonResults, ...nominatimResults, ...orsResults, ...fallbackResults];
   } else {
-    ordered = [...photonResults, ...nominatimResults, ...orsResults, ...fallbackResults];
+    ordered = [...googleResults, ...photonResults, ...nominatimResults, ...orsResults, ...fallbackResults];
   }
 
   // Deduplicate by (name + rough coords)
