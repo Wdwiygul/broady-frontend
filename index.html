@@ -22440,8 +22440,18 @@ function photonToResult(f) {
   if (!name) return null;
   const cityState = [p.city || p.county, p.state].filter(Boolean).join(', ');
   const country = p.country || '';
-  // label = what goes in the input box when selected
-  const label = cityState ? name + ', ' + cityState : (country ? name + ', ' + country : name);
+  // Avoid doubling: if cityState already starts with the name (e.g. "Glen Allen, VA"),
+  // don't prepend it again — just use cityState as the label
+  const nameLow = name.toLowerCase().trim();
+  const cityLow = cityState.toLowerCase().trim();
+  let label;
+  if (cityState && cityLow.startsWith(nameLow)) {
+    label = cityState; // city IS the name: "Glen Allen, VA" not "Glen Allen, Glen Allen, VA"
+  } else if (cityState) {
+    label = name + ', ' + cityState;
+  } else {
+    label = country ? name + ', ' + country : name;
+  }
   const isTruckStop = TRUCK_STOP_CHAINS.some(c => name.toLowerCase().includes(c));
   return {
     name,          // short business name
@@ -22543,7 +22553,12 @@ async function fetchSuggestions(text) {
       const name = item.name || item.display_name.split(',')[0];
       const addr = item.address || {};
       const cityState = [addr.city || addr.town || addr.village || addr.county, addr.state].filter(Boolean).join(', ');
-      const label = cityState ? name + ', ' + cityState : item.display_name.split(',').slice(0,3).join(',').trim();
+      // Avoid doubling: if cityState begins with name (e.g. city name = query)
+      const labelCS = cityState.toLowerCase();
+      const labelN  = name.toLowerCase();
+      const label = cityState
+        ? (labelCS.startsWith(labelN) ? cityState : name + ', ' + cityState)
+        : item.display_name.split(',').slice(0,3).join(',').trim();
       const nameLow = name.toLowerCase();
       const isTruckStop  = TRUCK_STOP_CHAINS.some(c => nameLow.includes(typeof c==='string'?c.trim():''));
       const isGasStation = !isTruckStop && GAS_STATION_CHAINS.some(c => nameLow.includes(typeof c==='string'?c.trim():''));
@@ -22582,21 +22597,38 @@ async function fetchSuggestions(text) {
   // Merge order: Google Places leads for business/chain queries (best coverage),
   // Nominatim leads for other known-chain queries, Photon leads for general POI
   var isBusinessQuery = isTruckStopQuery || isGasQuery || isHotelQuery || isHospitalQuery || isPharmacyQuery || isAutoPartsQuery || isRvParkQuery || isRestaurantQuery;
+  // Detect address-style query: has a house number OR state abbreviation pattern
+  const isAddressQuery = /^\d+\s/.test(text.trim()) || /,\s*[A-Z]{2}$/.test(text.trim().toUpperCase())
+    || /\b(st|ave|blvd|rd|dr|ln|hwy|pkwy|way|ct|pl|cir|ter)\b/i.test(text);
+
   let ordered;
-  if (isBusinessQuery && googleResults.length) {
+  if (isAddressQuery) {
+    // For address queries, ORS (OpenRouteService) is most accurate
+    ordered = [...orsResults, ...nominatimResults, ...googleResults, ...photonResults, ...fallbackResults];
+  } else if (isBusinessQuery && googleResults.length) {
     ordered = [...googleResults, ...nominatimResults, ...photonResults, ...orsResults, ...fallbackResults];
   } else if (isTruckStopQuery || isGasQuery || isHotelQuery || isHospitalQuery || isPharmacyQuery || isAutoPartsQuery || isRvParkQuery) {
     ordered = [...nominatimResults, ...photonResults, ...orsResults, ...fallbackResults];
   } else if (isNationalParkQuery || isLandmarkQuery) {
     ordered = [...photonResults, ...nominatimResults, ...orsResults, ...fallbackResults];
   } else {
-    ordered = [...googleResults, ...photonResults, ...nominatimResults, ...orsResults, ...fallbackResults];
+    // Generic city/place query: ORS + Nominatim first (most reliable for place names)
+    ordered = [...orsResults, ...nominatimResults, ...photonResults, ...googleResults, ...fallbackResults];
   }
+
+  // Noise filter: remove results that share zero query words with the result name
+  // This eliminates "Valero Allen Eagle" showing up for "Glen Allen VA"
+  const queryWords = text.toLowerCase().split(/[\s,]+/).filter(w => w.length > 2);
+  const noiseFiltered = ordered.filter(r => {
+    if (!queryWords.length) return true;
+    const rText = ((r.name || '') + ' ' + (r.label || '') + ' ' + (r.sub || '')).toLowerCase();
+    return queryWords.some(w => rText.includes(w));
+  });
 
   // Deduplicate by (name + rough coords)
   const seen = new Set();
   const merged = [];
-  for (const r of ordered) {
+  for (const r of noiseFiltered) {
     const coordKey = r.coords ? (Math.round(r.coords[0]*100) + ',' + Math.round(r.coords[1]*100)) : '';
     const nameKey = r.name.toLowerCase().slice(0, 20);
     const key = nameKey + '|' + coordKey;
