@@ -22504,7 +22504,7 @@ async function fetchSuggestions(text) {
   const isRestaurantQuery = !isTruckStopQuery && !isGasQuery && !isHotelQuery && !isHospitalQuery && !isPharmacyQuery && !isAutoPartsQuery && !isRvParkQuery && !isNationalParkQuery && !isLandmarkQuery && RESTAURANT_CHAINS.some(c => textLower.includes(c.replace(/'/g, '')));
 
   // Build Photon URL with category-specific OSM tag filters
-  let photonUrl = 'https://photon.komoot.io/api/?q=' + encodeURIComponent(text) + '&limit=8&lang=en';
+  let photonUrl = 'https://photon.komoot.io/api/?q=' + encodeURIComponent(text) + '&limit=8&lang=en&bbox=-125.0,24.0,-66.0,50.0';
   if (isTruckStopQuery)       photonUrl += '&osm_tag=amenity:fuel&osm_tag=amenity:truck_stop';
   else if (isGasQuery)        photonUrl += '&osm_tag=amenity:fuel&osm_tag=shop:gas';
   else if (isHotelQuery)      photonUrl += '&osm_tag=tourism:hotel&osm_tag=tourism:motel&osm_tag=tourism:guest_house';
@@ -22518,13 +22518,14 @@ async function fetchSuggestions(text) {
 
   // Nominatim for brand/chain lookup
   const nominatimUrl = 'https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(text)
-    + '&format=jsonv2&limit=6&addressdetails=1&extratags=1'
+    + '&format=jsonv2&limit=6&addressdetails=1&extratags=1&countrycodes=us'
     + (isTruckStopQuery || isGasQuery ? '&amenity=fuel' : '');
 
   // Fire ORS + Photon + Nominatim + Google Places all in parallel
   var userPos = (typeof map !== 'undefined' && map && typeof map.getCenter === 'function') ? map.getCenter() : null;
   var placesQs = BACKEND_URL + '/api/places?text=' + encodeURIComponent(text)
-    + (userPos ? '&lat=' + userPos.lat + '&lng=' + userPos.lng : '');
+    + (userPos ? '&lat=' + userPos.lat + '&lng=' + userPos.lng : '')
+    + '&country=us';
   const [orsResult, photonResult, nominatimResult, placesResult] = await Promise.allSettled([
     fetch(BACKEND_URL + '/api/geocode?text=' + encodeURIComponent(text)).then(r => r.ok ? r.json() : null),
     fetch(photonUrl).then(r => r.ok ? r.json() : null),
@@ -29685,21 +29686,31 @@ async function handleDestInput() {
   clearTimeout(_destDebounce);
   _destDebounce = setTimeout(async function() {
     const results = await fetchSuggestions(val);
-    if (results && results.length) {
-      showSuggestions(inp, results, function(label, coords) {
-        inp.value = label;
-        if (sug) sug.style.display = 'none';
-        // Wire into stops array: update dest stop coords
-        const destStop = stops.find(function(s){ return s.type === 'dest'; });
-        if (destStop) {
-          destStop.coords = coords;
-          destStop.label  = label;
-        } else {
-          stops.push({ type:'dest', coords:coords, label:label });
-        }
+    if (results && results.length && sug) {
+      sug.innerHTML = '';
+      sug.style.cssText = 'display:block;position:absolute;z-index:9999;width:100%;'
+        + 'background:#1a2340;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.5);'
+        + 'max-height:240px;overflow-y:auto;top:100%;left:0;';
+      results.slice(0, 6).forEach(function(r) {
+        const item = document.createElement('div');
+        item.style.cssText = 'padding:10px 14px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.08);display:flex;gap:8px;align-items:flex-start;';
+        const ico = (r.icon || '\U0001F4CD');
+        item.innerHTML = '<span style="font-size:16px;">' + ico + '</span>'
+          + '<span><div style="color:#fff;font-size:14px;font-weight:500;">' + (r.name || r.label) + '</div>'
+          + (r.sub ? '<div style="color:rgba(255,255,255,.5);font-size:12px;">' + r.sub + '</div>' : '') + '</span>';
+        item.addEventListener('mousedown', function(e){ e.preventDefault(); });
+        item.addEventListener('click', function() {
+          inp.value = r.label || r.name;
+          sug.style.display = 'none';
+          const destStop = stops.find(function(s){ return s.type === 'dest'; });
+          if (destStop) { destStop.coords = r.coords; destStop.label = r.label || r.name; }
+          else { stops.push({ type:'dest', coords:r.coords, label:r.label||r.name }); }
+        });
+        sug.appendChild(item);
       });
-    } else {
-      if (sug) sug.style.display = 'none';
+      inp.onblur = function(){ setTimeout(function(){ sug.style.display='none'; }, 200); };
+    } else if (sug) {
+      sug.style.display = 'none';
     }
   }, 300);
 }
