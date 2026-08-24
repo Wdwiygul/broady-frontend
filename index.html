@@ -2506,35 +2506,12 @@
       </div>
       <div id="routeCardBody">
 
-      <!-- Departure -->
-      <div class="rp-field-wrap" style="margin-bottom:8px;">
-        <div class="rp-field-label">
-          <span style="color:#4ecdc4;">⬤</span> Departure
-        </div>
-        <div style="position:relative;">
-          <input type="text" id="departureInput" class="rp-addr-input" placeholder="Current Location"
-            oninput="rpOnDepartureInput()" onfocus="rpShowDepartureSuggestions()" autocomplete="off" />
-          <button onclick="rpUseCurrentLocation()" class="rp-loc-btn" title="Use my location">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>
-          </button>
-          <div id="departureSuggestions" class="rp-suggestions" style="display:none;"></div>
-        </div>
-      </div>
+      <!-- Departure input handled by dynamic stopList below -->
 
       <!-- Stops (dynamic list) -->
       <div id="stopList"></div>
 
-      <!-- Destination -->
-      <div class="rp-field-wrap">
-        <div class="rp-field-label">
-          <span style="color:#ff6b35;">⬤</span> Destination
-        </div>
-        <div style="position:relative;">
-          <input type="text" id="destInput" class="rp-addr-input" placeholder="Where to?"
-            oninput="handleDestInput()" onfocus="handleDestFocus()" autocomplete="off" />
-          <div id="suggestions" class="rp-suggestions" style="display:none;"></div>
-        </div>
-      </div>
+      <!-- Destination input handled by dynamic stopList above -->
 
       <!-- Avoid Tolls + Must See row -->
       <div style="display:flex;align-items:center;justify-content:space-between;margin:10px 0 6px;padding:0 2px;">
