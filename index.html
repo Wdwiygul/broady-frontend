@@ -2648,9 +2648,9 @@
     </div>
     <!-- Map search suggestions dropdown -->
     <div id="mapSuggestions" style="
-      position:absolute; top:68px; left:12px; right:12px; z-index:51;
+      position:fixed; top:80px; left:12px; right:12px; z-index:9999;
       background:rgba(10,18,40,.97); border:1px solid rgba(255,255,255,.12);
-      border-radius:12px; overflow:hidden; display:none;
+      border-radius:12px; overflow-y:auto; max-height:280px; display:none;
       box-shadow:0 8px 32px rgba(0,0,0,.6);
     "></div>
     <!-- Night Nav Banner -->
@@ -22523,8 +22523,12 @@ async function fetchSuggestions(text) {
 
   // Fire ORS + Photon + Nominatim + Google Places all in parallel
   var userPos = (typeof map !== 'undefined' && map && typeof map.getCenter === 'function') ? map.getCenter() : null;
+  // Use origin stop coords as location bias if GPS not available
+  var originCoords = stops[0] && stops[0].coords ? stops[0].coords : null;
+  var biasLat = userPos ? userPos.lat : (originCoords ? originCoords[0] : null);
+  var biasLng = userPos ? userPos.lng : (originCoords ? originCoords[1] : null);
   var placesQs = BACKEND_URL + '/api/places?text=' + encodeURIComponent(text)
-    + (userPos ? '&lat=' + userPos.lat + '&lng=' + userPos.lng : '')
+    + (biasLat && biasLng ? '&lat=' + biasLat + '&lng=' + biasLng : '')
     + '&countries=us,ca,mx';
   const [orsResult, photonResult, nominatimResult, placesResult] = await Promise.allSettled([
     fetch(BACKEND_URL + '/api/geocode?text=' + encodeURIComponent(text)).then(r => r.ok ? r.json() : null),
@@ -26488,8 +26492,13 @@ document.getElementById('addStopBtn').addEventListener('click', () => {
 });
 document.getElementById('goBtn').addEventListener('click', ()=>{
   toggleStopFilterPanel(false);
-  const o=stops[0].value.trim(), d=stops[stops.length-1].value.trim();
+  const oStop = stops[0], dStop = stops[stops.length-1];
+  const o = (oStop.value||oStop.label||'').trim();
+  const d = (dStop.value||dStop.label||'').trim();
+  const oCoords = oStop.coords || (oStop.lat && oStop.lng ? [oStop.lat, oStop.lng] : null);
+  const dCoords = dStop.coords;
   if (!o||!d) { toast('Enter a starting point and destination.'); return; }
+  if (!dCoords) { toast('Pick a destination from the dropdown list.'); return; }
   // Navigate to map — initMap() will call buildRoute() once the Leaflet map is ready.
   // Set a flag so initMap knows to build the route even if called for first time.
   window._pendingHomeRoute = true;
@@ -26544,16 +26553,18 @@ async function mapHandleDestInput(val) {
   _mapDestDebounce = setTimeout(async function() {
     var results = await fetchSuggestions(val);
     if (!results || !results.length) { if (sugg) sugg.style.display = 'none'; return; }
-    sugg.innerHTML = results.slice(0, 6).map(function(r, i) {
-      return '<div onclick="mapSelectDest(' + i + ')" style="' +
-        'padding:12px 16px; border-bottom:1px solid rgba(255,255,255,.07);' +
-        'cursor:pointer; display:flex; align-items:center; gap:10px;' +
-        'font-size:.88rem; font-weight:600; color:#fff;">' +
-        '<span style="font-size:1rem;">' + (r.icon||'📍') + '</span>' +
-        '<div><div>' + r.name + '</div>' +
-        (r.sub ? '<div style="font-size:.75rem;color:rgba(255,255,255,.45);font-weight:400;">' + r.sub + '</div>' : '') +
-        '</div></div>';
-    }).join('');
+    sugg.innerHTML = '';
+    results.slice(0, 6).forEach(function(r, i) {
+      var item = document.createElement('div');
+      item.style.cssText = 'padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.07);cursor:pointer;display:flex;align-items:center;gap:10px;font-size:.88rem;font-weight:600;color:#fff;';
+      item.innerHTML = '<span style="font-size:1rem;">' + (r.icon||'📍') + '</span>'
+        + '<div><div>' + r.name + '</div>'
+        + (r.sub ? '<div style="font-size:.75rem;color:rgba(255,255,255,.45);font-weight:400;">' + r.sub + '</div>' : '')
+        + '</div>';
+      item.addEventListener('mousedown', function(e){ e.preventDefault(); });
+      item.addEventListener('click', function(){ mapSelectDest(i); });
+      sugg.appendChild(item);
+    });
     window._mapSuggResults = results;
     sugg.style.display = '';
   }, 350);
@@ -29688,9 +29699,13 @@ async function handleDestInput() {
     const results = await fetchSuggestions(val);
     if (results && results.length && sug) {
       sug.innerHTML = '';
-      sug.style.cssText = 'display:block;position:absolute;z-index:9999;width:100%;'
+      // Get input position to place fixed dropdown correctly
+      var inpRect = inp.getBoundingClientRect();
+      sug.style.cssText = 'display:block;position:fixed;z-index:9999;'
+        + 'left:' + inpRect.left + 'px;top:' + (inpRect.bottom + 2) + 'px;'
+        + 'width:' + inpRect.width + 'px;'
         + 'background:#1a2340;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.5);'
-        + 'max-height:240px;overflow-y:auto;top:100%;left:0;';
+        + 'max-height:240px;overflow-y:auto;';
       results.slice(0, 6).forEach(function(r) {
         const item = document.createElement('div');
         item.style.cssText = 'padding:10px 14px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.08);display:flex;gap:8px;align-items:flex-start;';
@@ -29700,11 +29715,15 @@ async function handleDestInput() {
           + (r.sub ? '<div style="color:rgba(255,255,255,.5);font-size:12px;">' + r.sub + '</div>' : '') + '</span>';
         item.addEventListener('mousedown', function(e){ e.preventDefault(); });
         item.addEventListener('click', function() {
-          inp.value = r.label || r.name;
+          var picked = r.label || r.name;
+          inp.value = picked;
           sug.style.display = 'none';
-          const destStop = stops.find(function(s){ return s.type === 'dest'; });
-          if (destStop) { destStop.coords = r.coords; destStop.label = r.label || r.name; }
-          else { stops.push({ type:'dest', coords:r.coords, label:r.label||r.name }); }
+          const destStop = stops.find(function(s){ return s.type === 'dest' || s.id === 'd'; });
+          if (destStop) {
+            destStop.coords = r.coords; destStop.label = picked; destStop.value = picked;
+          } else {
+            stops.push({ id:'d', type:'dest', coords:r.coords, label:picked, value:picked });
+          }
         });
         sug.appendChild(item);
       });
@@ -29735,13 +29754,14 @@ function handleDepartureInput() {
       showSuggestions(inp, results, function(label, coords) {
         inp.value = label;
         if (sug) sug.style.display = 'none';
-        // Wire into stops array: update origin stop coords
-        const originStop = stops.find(function(s){ return s.type === 'origin'; });
+        // Wire into stops array: update origin stop coords AND value
+        const originStop = stops.find(function(s){ return s.type === 'origin' || s.id === 'o'; });
         if (originStop) {
           originStop.coords = coords;
           originStop.label  = label;
+          originStop.value  = label;
         } else {
-          stops.unshift({ type:'origin', coords:coords, label:label });
+          stops.unshift({ id:'o', type:'origin', coords:coords, value:label, label:label });
         }
       });
     } else {
