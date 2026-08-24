@@ -22504,7 +22504,7 @@ async function fetchSuggestions(text) {
   const isRestaurantQuery = !isTruckStopQuery && !isGasQuery && !isHotelQuery && !isHospitalQuery && !isPharmacyQuery && !isAutoPartsQuery && !isRvParkQuery && !isNationalParkQuery && !isLandmarkQuery && RESTAURANT_CHAINS.some(c => textLower.includes(c.replace(/'/g, '')));
 
   // Build Photon URL with category-specific OSM tag filters
-  let photonUrl = 'https://photon.komoot.io/api/?q=' + encodeURIComponent(text) + '&limit=8&lang=en&bbox=-125.0,24.0,-66.0,50.0';
+  let photonUrl = 'https://photon.komoot.io/api/?q=' + encodeURIComponent(text) + '&limit=8&lang=en&bbox=-169.0,14.5,-52.0,72.0';
   if (isTruckStopQuery)       photonUrl += '&osm_tag=amenity:fuel&osm_tag=amenity:truck_stop';
   else if (isGasQuery)        photonUrl += '&osm_tag=amenity:fuel&osm_tag=shop:gas';
   else if (isHotelQuery)      photonUrl += '&osm_tag=tourism:hotel&osm_tag=tourism:motel&osm_tag=tourism:guest_house';
@@ -22518,14 +22518,14 @@ async function fetchSuggestions(text) {
 
   // Nominatim for brand/chain lookup
   const nominatimUrl = 'https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(text)
-    + '&format=jsonv2&limit=6&addressdetails=1&extratags=1&countrycodes=us'
+    + '&format=jsonv2&limit=6&addressdetails=1&extratags=1&countrycodes=us,ca,mx'
     + (isTruckStopQuery || isGasQuery ? '&amenity=fuel' : '');
 
   // Fire ORS + Photon + Nominatim + Google Places all in parallel
   var userPos = (typeof map !== 'undefined' && map && typeof map.getCenter === 'function') ? map.getCenter() : null;
   var placesQs = BACKEND_URL + '/api/places?text=' + encodeURIComponent(text)
     + (userPos ? '&lat=' + userPos.lat + '&lng=' + userPos.lng : '')
-    + '&country=us';
+    + '&countries=us,ca,mx';
   const [orsResult, photonResult, nominatimResult, placesResult] = await Promise.allSettled([
     fetch(BACKEND_URL + '/api/geocode?text=' + encodeURIComponent(text)).then(r => r.ok ? r.json() : null),
     fetch(photonUrl).then(r => r.ok ? r.json() : null),
