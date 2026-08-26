@@ -22590,7 +22590,14 @@ async function fetchSuggestions(text) {
       var isGas2  = GAS_STATION_CHAINS.some(function(c){ return nameLow.includes(typeof c==='string'?c.trim():''); });
       var isEat   = RESTAURANT_CHAINS.some(function(c){ return nameLow.includes(c.replace(/'/g,'')); });
       var gIcon   = (isTruck || isGas2) ? '⛽' : isEat ? '🍔' : '📍';
-      googleResults.push({ name: p.name, sub: p.address, label: p.name + (p.address ? ', ' + p.address : ''), coords: [p.lat, p.lng], icon: gIcon });
+      // Avoid doubling: if the address already starts with the name, use address as label
+      var gLabel;
+      if (p.address && p.address.toLowerCase().startsWith(p.name.toLowerCase())) {
+        gLabel = p.address; // e.g. "Glen Allen, VA, USA" not "Glen Allen, Glen Allen, VA, USA"
+      } else {
+        gLabel = p.name + (p.address ? ', ' + p.address : '');
+      }
+      googleResults.push({ name: p.name, sub: p.address, label: gLabel, coords: [p.lat, p.lng], icon: gIcon });
     });
   }
 
@@ -22616,13 +22623,19 @@ async function fetchSuggestions(text) {
     ordered = [...orsResults, ...nominatimResults, ...photonResults, ...googleResults, ...fallbackResults];
   }
 
-  // Noise filter: remove results that share zero query words with the result name
-  // This eliminates "Valero Allen Eagle" showing up for "Glen Allen VA"
+  // Noise filter: remove results that don't match the query well enough
+  // For city/place queries, require that MOST query words appear in the result
   const queryWords = text.toLowerCase().split(/[\s,]+/).filter(w => w.length > 2);
+  const stateAbbrevs = new Set(['usa','the','and','for','ave','blvd','hwy','rd','st','dr','ln','pkwy']);
+  const meaningfulWords = queryWords.filter(w => !stateAbbrevs.has(w));
   const noiseFiltered = ordered.filter(r => {
-    if (!queryWords.length) return true;
+    if (!meaningfulWords.length) return true;
     const rText = ((r.name || '') + ' ' + (r.label || '') + ' ' + (r.sub || '')).toLowerCase();
-    return queryWords.some(w => rText.includes(w));
+    // For city queries: require at least 2 of the meaningful words to match
+    // (prevents "Allentown Rd Valero" from matching "Glen Allen VA" — only 1 word matches)
+    const matchCount = meaningfulWords.filter(w => rText.includes(w)).length;
+    const threshold = meaningfulWords.length >= 2 ? Math.min(2, meaningfulWords.length) : 1;
+    return matchCount >= threshold;
   });
 
   // Deduplicate by (name + rough coords)
