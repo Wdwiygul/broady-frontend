@@ -1,4 +1,4 @@
-const CACHE = 'broady-v48b';
+const CACHE = 'broady-v49';
 const PRECACHE = ['/', '/index.html', '/mascot.png', '/manifest.json'];
 
 self.addEventListener('install', e => {

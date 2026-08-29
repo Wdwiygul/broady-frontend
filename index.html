@@ -13732,26 +13732,28 @@ var VEHICLE_DB = {
       },
       'RAM': {
         models: {
-          '1500': { trims: {
-            '1500 (Standard)': { length_ft:19, height_ft:9.0, width_ft:7.0, weight_lbs:6500, mpg:18, tank_gal:24, fuel_type:'gasoline' },
+          'Ram 1500': { trims: {
+            'Ram 1500 Regular Cab': { length_ft:18.5, height_ft:6.3, width_ft:6.7, weight_lbs:4500, mpg:20, tank_gal:26, fuel_type:'gasoline' },
+            'Ram 1500 Crew Cab': { length_ft:20.5, height_ft:6.3, width_ft:6.7, weight_lbs:5000, mpg:19, tank_gal:33, fuel_type:'gasoline' },
+            'Ram 1500 TRX': { length_ft:20.5, height_ft:6.5, width_ft:7.1, weight_lbs:6350, mpg:12, tank_gal:33, fuel_type:'gasoline' },
           }},
-          '2500': { trims: {
-            '2500 (Standard)': { length_ft:19, height_ft:9.0, width_ft:7.0, weight_lbs:6500, mpg:18, tank_gal:24, fuel_type:'gasoline' },
+          'Ram 2500': { trims: {
+            'Ram 2500 Regular Cab': { length_ft:19.5, height_ft:6.5, width_ft:7.0, weight_lbs:5600, mpg:16, tank_gal:35, fuel_type:'gasoline' },
+            'Ram 2500 Crew Cab': { length_ft:21.5, height_ft:6.5, width_ft:7.0, weight_lbs:6200, mpg:15, tank_gal:35, fuel_type:'gasoline' },
+            'Ram 2500 Crew Cab Diesel': { length_ft:21.5, height_ft:6.5, width_ft:7.0, weight_lbs:6800, mpg:20, tank_gal:35, fuel_type:'diesel' },
           }},
-          '3500': { trims: {
-            '3500 (Standard)': { length_ft:19, height_ft:9.0, width_ft:7.0, weight_lbs:6500, mpg:18, tank_gal:24, fuel_type:'gasoline' },
+          'Ram 3500': { trims: {
+            'Ram 3500 Regular Cab SRW': { length_ft:20.0, height_ft:6.5, width_ft:7.0, weight_lbs:6500, mpg:14, tank_gal:35, fuel_type:'gasoline' },
+            'Ram 3500 Crew Cab SRW': { length_ft:22.0, height_ft:6.5, width_ft:7.0, weight_lbs:7100, mpg:13, tank_gal:35, fuel_type:'gasoline' },
+            'Ram 3500 Crew Cab Dually Diesel': { length_ft:22.0, height_ft:6.7, width_ft:8.0, weight_lbs:7700, mpg:18, tank_gal:35, fuel_type:'diesel' },
+            'Ram 3500 Mega Cab Dually Diesel': { length_ft:23.5, height_ft:6.7, width_ft:8.0, weight_lbs:7900, mpg:17, tank_gal:35, fuel_type:'diesel' },
           }},
           'ProMaster': { trims: {
-            'ProMaster (Standard)': { length_ft:19, height_ft:9.0, width_ft:7.0, weight_lbs:6500, mpg:18, tank_gal:24, fuel_type:'gasoline' },
+            'ProMaster 1500 Low Roof': { length_ft:17.4, height_ft:6.3, width_ft:6.8, weight_lbs:4500, mpg:16, tank_gal:24, fuel_type:'gasoline' },
+            'ProMaster 2500 High Roof': { length_ft:19.7, height_ft:8.3, width_ft:6.8, weight_lbs:5500, mpg:15, tank_gal:24, fuel_type:'gasoline' },
           }},
           'ProMaster City': { trims: {
-            'ProMaster City (Standard)': { length_ft:19, height_ft:9.0, width_ft:7.0, weight_lbs:6500, mpg:18, tank_gal:24, fuel_type:'gasoline' },
-          }},
-          'Dakota': { trims: {
-            'Dakota (Standard)': { length_ft:19, height_ft:9.0, width_ft:7.0, weight_lbs:6500, mpg:18, tank_gal:24, fuel_type:'gasoline' },
-          }},
-          'Rampage': { trims: {
-            'Rampage (Standard)': { length_ft:19, height_ft:9.0, width_ft:7.0, weight_lbs:6500, mpg:18, tank_gal:24, fuel_type:'gasoline' },
+            'ProMaster City Cargo Van': { length_ft:15.7, height_ft:6.2, width_ft:6.6, weight_lbs:3800, mpg:20, tank_gal:16, fuel_type:'gasoline' },
           }},
         }
       },
@@ -15284,8 +15286,21 @@ var VEHICLE_DB = {
           'Challenger': { trims: {
             'Challenger (Standard)': { length_ft:14.5, height_ft:4.6, width_ft:6.2, weight_lbs:3400, mpg:22, tank_gal:15, fuel_type:'gasoline' },
           }},
-          'Ram': { trims: {
-            'Ram (Standard)': { length_ft:16, height_ft:5.8, width_ft:6.5, weight_lbs:4200, mpg:28, tank_gal:16, fuel_type:'gasoline' },
+          'Ram 1500': { trims: {
+            'Ram 1500 Regular Cab': { length_ft:18.5, height_ft:6.3, width_ft:6.7, weight_lbs:4500, mpg:20, tank_gal:26, fuel_type:'gasoline' },
+            'Ram 1500 Crew Cab': { length_ft:20.5, height_ft:6.3, width_ft:6.7, weight_lbs:5000, mpg:19, tank_gal:33, fuel_type:'gasoline' },
+            'Ram 1500 TRX': { length_ft:20.5, height_ft:6.5, width_ft:7.1, weight_lbs:6350, mpg:12, tank_gal:33, fuel_type:'gasoline' },
+          }},
+          'Ram 2500': { trims: {
+            'Ram 2500 Regular Cab': { length_ft:19.5, height_ft:6.5, width_ft:7.0, weight_lbs:5600, mpg:16, tank_gal:35, fuel_type:'gasoline' },
+            'Ram 2500 Crew Cab': { length_ft:21.5, height_ft:6.5, width_ft:7.0, weight_lbs:6200, mpg:15, tank_gal:35, fuel_type:'gasoline' },
+            'Ram 2500 Crew Cab Diesel': { length_ft:21.5, height_ft:6.5, width_ft:7.0, weight_lbs:6800, mpg:20, tank_gal:35, fuel_type:'diesel' },
+          }},
+          'Ram 3500': { trims: {
+            'Ram 3500 Regular Cab SRW': { length_ft:20.0, height_ft:6.5, width_ft:7.0, weight_lbs:6500, mpg:14, tank_gal:35, fuel_type:'gasoline' },
+            'Ram 3500 Crew Cab SRW': { length_ft:22.0, height_ft:6.5, width_ft:7.0, weight_lbs:7100, mpg:13, tank_gal:35, fuel_type:'gasoline' },
+            'Ram 3500 Crew Cab Dually Diesel': { length_ft:22.0, height_ft:6.7, width_ft:8.0, weight_lbs:7700, mpg:18, tank_gal:35, fuel_type:'diesel' },
+            'Ram 3500 Mega Cab Dually Diesel': { length_ft:23.5, height_ft:6.7, width_ft:8.0, weight_lbs:7900, mpg:17, tank_gal:35, fuel_type:'diesel' },
           }},
           'Durango': { trims: {
             'Durango (Standard)': { length_ft:16, height_ft:5.8, width_ft:6.5, weight_lbs:4200, mpg:28, tank_gal:16, fuel_type:'gasoline' },
@@ -22610,8 +22625,11 @@ async function fetchSuggestions(text) {
 
   let ordered;
   if (isAddressQuery) {
-    // For address queries, ORS (OpenRouteService) is most accurate
-    ordered = [...orsResults, ...nominatimResults, ...googleResults, ...photonResults, ...fallbackResults];
+    // For address queries: strip business POIs from Google (keep only address-like results)
+    // A plain address result has a house number at the start of its label
+    const googleAddressOnly = googleResults.filter(r => /^\d/.test((r.label || r.name || '').trim()));
+    // ORS/Nominatim first (most precise for street addresses), then Google address-only, then Photon
+    ordered = [...orsResults, ...nominatimResults, ...googleAddressOnly, ...photonResults, ...fallbackResults];
   } else if (isBusinessQuery && googleResults.length) {
     ordered = [...googleResults, ...nominatimResults, ...photonResults, ...orsResults, ...fallbackResults];
   } else if (isTruckStopQuery || isGasQuery || isHotelQuery || isHospitalQuery || isPharmacyQuery || isAutoPartsQuery || isRvParkQuery) {
@@ -22712,6 +22730,7 @@ function renderStops() {
         if (inp.value.length < 2) return;
         const results = await fetchSuggestions(inp.value);
         showSuggestions(inp, results, (label, coords) => {
+          clearTimeout(acTimers[i]); // cancel any pending debounce search
           s.value = label;
           s.coords = coords;
           inp.value = label;
@@ -22974,7 +22993,7 @@ function initMap() {
   // Invalidate Leaflet size in case container was hidden during init
   if (typeof map !== "undefined" && map) { setTimeout(function(){ map.invalidateSize(); }, 100); }
   if (map) { map.invalidateSize(); if(window._pendingHomeRoute||activeRouteCoords){buildRoute();} return; }
-  map = L.map('mapCanvas', { zoomControl: false, preferCanvas: true }).setView([36.5,-78.5], 7);
+  map = L.map('mapCanvas', { zoomControl: false, renderer: L.svg() }).setView([36.5,-78.5], 7);
   tileLayer = L.tileLayer(MAP_TILES[currentMapStyle], { maxZoom:18, attribution:'© OpenStreetMap' }).addTo(map);
   L.control.zoom({ position:'bottomright' }).addTo(map);
   mustSeeLayer = L.layerGroup().addTo(map);
@@ -23557,6 +23576,15 @@ function showRoutePicker(hgv) {
   selectedRouteIdx = 0;
   sheet.style.display = ''; sheet.classList.add('open');
 
+  // Ensure polylines are visible after sheet renders
+  setTimeout(() => {
+    if (map) {
+      map.invalidateSize();
+      routeOptions.forEach(opt => { if (opt.polyline && opt.polyline.redraw) opt.polyline.redraw(); });
+      if (routeOptions.length) map.fitBounds(routeOptions[0].coords, {padding:[80,24]});
+    }
+  }, 150);
+
   // Render trip cost card for selected route
   const firstOpt = routeOptions[0];
   if (firstOpt) {
@@ -23582,7 +23610,10 @@ function selectRouteOption(idx) {
     if (i===idx) opt.polyline.bringToFront();
   });
   // Fit map to selected route
+  map.invalidateSize();
   map.fitBounds(routeOptions[idx].coords, {padding:[80,24]});
+  // Redraw polyline in case canvas renderer missed initial paint
+  routeOptions.forEach(opt => { if (opt.polyline && opt.polyline.redraw) opt.polyline.redraw(); });
   // Update trip cost card for newly selected route
   const opt = routeOptions[idx];
   if (opt) {
